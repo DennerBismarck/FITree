@@ -1,24 +1,25 @@
 import 'package:flutter/material.dart';
 import 'routes/app_routes.dart';
-import 'screens/login_screen.dart';
-import 'screens/home_screen.dart';
+
 
 void main() {
-  runApp(FiTreeApp());
+  runApp(const FiTreeApp());
 }
 
 class FiTreeApp extends StatelessWidget {
+  const FiTreeApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'FiTree',
       debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        fontFamily: 'Roboto',
+        useMaterial3: true,
+      ),
       initialRoute: AppRoutes.login,
       routes: AppRoutes.routes,
-      theme: ThemeData(
-        primarySwatch: Colors.green,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-      ),
     );
   }
 }

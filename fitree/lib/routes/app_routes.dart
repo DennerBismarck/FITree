@@ -21,9 +21,9 @@ class AppRoutes {
   static const report = '/report';
 
   static Map<String, WidgetBuilder> routes = {
-  //  login: (_) => LoginScreen(),
-  //  register: (_) => RegisterScreen(),
-  //  home: (_) => HomeScreen(),
+    login: (_) => const LoginScreen(),
+    register: (_) => const SignUpScreen(),
+    home: (_) => HomeScreen(),
   //  profile: (_) => ProfileScreen(),
   //  workout: (_) => WorkoutScreen(),
   //  meal: (_) => MealScreen(),
