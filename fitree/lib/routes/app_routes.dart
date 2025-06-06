@@ -23,7 +23,7 @@ class AppRoutes {
   static Map<String, WidgetBuilder> routes = {
     login: (_) => const LoginScreen(),
     register: (_) => const SignUpScreen(),
-    home: (_) => HomeScreen(),
+    home: (_) => const HomeScreen(),
   //  profile: (_) => ProfileScreen(),
   //  workout: (_) => WorkoutScreen(),
   //  meal: (_) => MealScreen(),

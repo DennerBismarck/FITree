@@ -1,9 +1,10 @@
+import 'package:fitree/widgets/navbar.dart';
 import 'package:flutter/material.dart';
-import 'workout_screen.dart';
-import 'meal_screen.dart';
-import 'water_screen.dart';
-import 'profile_screen.dart';
-
+import 'package:provider/provider.dart';
+import '../theme/theme_notifier.dart';
+import 'login_screen.dart';
+import 'package:fitree/widgets/navbar.dart';
+// import 'profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -16,10 +17,10 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
 
   final List<Widget> _screens = [
-    _HomeDashboard(),
-    //WorkoutScreen(),
-   // MealScreen(),
-   // WaterScreen(),
+    const _HomeDashboard(),
+    // const WorkoutScreen(),
+    // const MealScreen(),
+    // const WaterScreen(),
   ];
 
   void _onItemTapped(int index) {
@@ -28,105 +29,98 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  void _handleMenuAction(String value) {
+    switch (value) {
+      case 'theme':
+        Provider.of<ThemeNotifier>(context, listen: false).toggleTheme();
+        break;
+      case 'edit':
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Editar perfil ainda não implementado')),
+        );
+        // Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen()));
+        break;
+      case 'logout':
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+        );
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5), // fundo claro
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF2C5E4A), // verde escuro
-        title: const Text(
+        backgroundColor: theme.colorScheme.primary,
+        title: Text(
           'FiTree',
-          style: TextStyle(color: Colors.white),
+          style: theme.textTheme.titleLarge?.copyWith(color: Colors.white),
         ),
         actions: [
-          IconButton(
+          PopupMenuButton<String>(
             icon: const Icon(Icons.person, color: Colors.white),
-            onPressed: () {
-            //  Navigator.push(
-             //   context,
-             //   MaterialPageRoute(builder: (_) => const ProfileScreen()),
-             // );
-            },
+            onSelected: _handleMenuAction,
+            itemBuilder: (context) => [
+              const PopupMenuItem(value: 'theme', child: Text('Change theme')),
+              const PopupMenuItem(value: 'edit', child: Text('Profile')),
+              const PopupMenuItem(value: 'logout', child: Text('Logout')),
+            ],
           ),
         ],
       ),
       body: _screens[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        selectedItemColor: const Color(0xFF6ABF4B), // verde claro
-        unselectedItemColor: Colors.grey,
-        backgroundColor: Colors.white,
-        type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.fitness_center),
-            label: 'Workout',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.restaurant),
-            label: 'Meals',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.opacity),
-            label: 'Water',
-          ),
+      bottomNavigationBar: FitNavBar(itemSelectedCallback: 1)
+    );
+  }
+}
+
+class _HomeDashboard extends StatelessWidget {
+  const _HomeDashboard();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text("Welcome back, Denner!", style: theme.textTheme.headlineSmall),
+          const SizedBox(height: 8),
+          Text("Here's your progress today:",
+              style: theme.textTheme.bodyMedium),
+          const SizedBox(height: 24),
+          _buildCard("Workout", Icons.fitness_center,
+              "Arms training: Incomplete", theme),
+          const SizedBox(height: 12),
+          _buildCard("Meals", Icons.restaurant, "2 of 3 meals logged", theme),
+          const SizedBox(height: 12),
+          _buildCard("Water", Icons.opacity, "1.2L of 2L goal", theme),
+          const SizedBox(height: 12),
+          _buildCard("Sleep mode", Icons.bed_outlined, "Sleep at 21:30", theme),
         ],
       ),
     );
   }
 }
 
-
-class _HomeDashboard extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            "Welcome back!",
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF1A1A1A),
-            ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            "Here's your progress today:",
-            style: TextStyle(color: Colors.grey),
-          ),
-          const SizedBox(height: 24),
-          _buildCard("Workout", Icons.fitness_center, const Color(0xFF6ABF4B)),
-          const SizedBox(height: 12),
-          _buildCard("Meals", Icons.restaurant, const Color(0xFF6ABF4B)),
-          const SizedBox(height: 12),
-          _buildCard("Water", Icons.opacity, const Color(0xFF6ABF4B)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCard(String title, IconData icon, Color iconColor) {
-    return Card(
-      color: Colors.white,
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: ListTile(
-        leading: Icon(icon, color: iconColor),
-        title: Text(title),
-        trailing: const Icon(Icons.arrow_forward_ios),
-        onTap: () {
-          // Ação específica aqui se desejar
-        },
-      ),
-    );
-  }
+Widget _buildCard(String title, IconData icon, String subtitle, ThemeData theme) {
+  return Card(
+    color: theme.cardColor,
+    elevation: 2,
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    child: ListTile(
+      leading: Icon(icon, color: theme.colorScheme.secondary),
+      title: Text(title, style: theme.textTheme.titleMedium),
+      subtitle: Text(subtitle, style: theme.textTheme.bodySmall),
+      trailing: const Icon(Icons.arrow_forward_ios),
+      onTap: () {
+        // Pode navegar para a tela correspondente futuramente
+      },
+    ),
+  );
 }

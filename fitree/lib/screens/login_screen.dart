@@ -6,8 +6,10 @@ class LoginScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F1E7), // Fundo neutro
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -22,12 +24,12 @@ class LoginScreen extends StatelessWidget {
               const SizedBox(height: 40),
 
               // TÍTULO
-              const Text(
-                "Welcome to FiTree",
-                style: TextStyle(
-                  fontSize: 24,
+              Text(
+                "Your Fitness Journey Starts Here",
+                textAlign: TextAlign.center,
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  color: theme.colorScheme.primary,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF224B2F), // Verde escuro
                 ),
               ),
 
@@ -35,12 +37,12 @@ class LoginScreen extends StatelessWidget {
 
               // CAMPO DE E-MAIL
               TextField(
-                style: const TextStyle(color: Color(0xFF224B2F)),
+                style: TextStyle(color: theme.colorScheme.primary),
                 decoration: InputDecoration(
                   hintText: "Email",
-                  hintStyle: const TextStyle(color: Color(0x80224B2F)),
+                  hintStyle: TextStyle(color: theme.colorScheme.primary.withOpacity(0.5)),
                   filled: true,
-                  fillColor: Color(0xFFE5CFA2), // Bege suave
+                  fillColor: theme.inputDecorationTheme.fillColor,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,
@@ -53,12 +55,12 @@ class LoginScreen extends StatelessWidget {
               // CAMPO DE SENHA
               TextField(
                 obscureText: true,
-                style: const TextStyle(color: Color(0xFF224B2F)),
+                style: TextStyle(color: theme.colorScheme.primary),
                 decoration: InputDecoration(
                   hintText: "Password",
-                  hintStyle: const TextStyle(color: Color(0x80224B2F)),
+                  hintStyle: TextStyle(color: theme.colorScheme.primary.withOpacity(0.5)),
                   filled: true,
-                  fillColor: Color(0xFFE5CFA2),
+                  fillColor: theme.inputDecorationTheme.fillColor,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,
@@ -73,12 +75,10 @@ class LoginScreen extends StatelessWidget {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
-                    // Ação de login
-                    // Aqui você pode adicionar a lógica de autenticação
                     Navigator.pushReplacementNamed(context, AppRoutes.home);
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF709255), // Verde médio
+                    backgroundColor: theme.colorScheme.secondary,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
@@ -97,11 +97,11 @@ class LoginScreen extends StatelessWidget {
               // LINK DE CADASTRO
               TextButton(
                 onPressed: () {
-                  Navigator.pushNamed(context, '/register');
+                  Navigator.pushNamed(context, AppRoutes.register);
                 },
-                child: const Text(
+                child: Text(
                   "Don't have an account? Sign up",
-                  style: TextStyle(color: Color(0xFF709255)),
+                  style: TextStyle(color: theme.colorScheme.secondary),
                 ),
               ),
             ],
