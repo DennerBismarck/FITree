@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import '../controllers/data_service.dart'; // ajuste o caminho se necessário
 
 class FitNavBar extends HookWidget {
   final Function(int) itemSelectedCallback;
@@ -8,13 +9,13 @@ class FitNavBar extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    var state = useState(1);
     final theme = Theme.of(context);
+    final selectedIndex = useListenable(dataService.selectedIndex);
 
     return BottomNavigationBar(
-      currentIndex: state.value,
+      currentIndex: selectedIndex.value,
       onTap: (index) {
-        state.value = index;
+        dataService.onBottomNavTapped(index);
         itemSelectedCallback(index);
       },
       selectedItemColor: theme.colorScheme.secondary,

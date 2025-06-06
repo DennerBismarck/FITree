@@ -3,33 +3,25 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../theme/theme_notifier.dart';
 import 'login_screen.dart';
-import 'package:fitree/widgets/navbar.dart';
 // import 'profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _selectedIndex = 0;
+  final ValueNotifier<int> selectedIndex = ValueNotifier<int>(0);
 
-  final List<Widget> _screens = [
-    const _HomeDashboard(),
-    // const WorkoutScreen(),
-    // const MealScreen(),
-    // const WaterScreen(),
-  ];
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+  @override
+  void dispose() {
+    selectedIndex.dispose();
+    super.dispose();
   }
 
-  void _handleMenuAction(String value) {
+  void handleMenuAction(String value) {
     switch (value) {
       case 'theme':
         Provider.of<ThemeNotifier>(context, listen: false).toggleTheme();
@@ -38,7 +30,6 @@ class _HomeScreenState extends State<HomeScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Editar perfil ainda não implementado')),
         );
-        // Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen()));
         break;
       case 'logout':
         Navigator.pushReplacement(
@@ -52,18 +43,23 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
+    final List<Widget> screens = [
+      const _HomeDashboard(),
+      const Center(child: Text('Workout - Em construção')),
+      const Center(child: Text('Meals - Em construção')),
+      const Center(child: Text('Water - Em construção')),
+    ];
+
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: theme.colorScheme.primary,
-        title: Text(
-          'FiTree',
-          style: theme.textTheme.titleLarge?.copyWith(color: Colors.white),
-        ),
+        title: Text('FiTree', style: theme.textTheme.titleLarge?.copyWith(color: Colors.white)),
         actions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.person, color: Colors.white),
-            onSelected: _handleMenuAction,
+            onSelected: handleMenuAction,
             itemBuilder: (context) => [
               const PopupMenuItem(value: 'theme', child: Text('Change theme')),
               const PopupMenuItem(value: 'edit', child: Text('Profile')),
@@ -72,11 +68,22 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: _screens[_selectedIndex],
-      bottomNavigationBar: FitNavBar(itemSelectedCallback: 1)
+      body: ValueListenableBuilder<int>(
+        valueListenable: selectedIndex,
+        builder: (context, value, _) {
+          return value < screens.length
+              ? screens[value]
+              : const Center(child: Text('Tela não disponível'));
+        },
+      ),
+      bottomNavigationBar: FitNavBar(itemSelectedCallback: (index) {
+        selectedIndex.value = index;
+        // Se quiser fazer alguma ação extra ao mudar de tela, faça aqui
+      }),
     );
   }
 }
+
 
 class _HomeDashboard extends StatelessWidget {
   const _HomeDashboard();
@@ -108,7 +115,8 @@ class _HomeDashboard extends StatelessWidget {
   }
 }
 
-Widget _buildCard(String title, IconData icon, String subtitle, ThemeData theme) {
+Widget _buildCard(
+    String title, IconData icon, String subtitle, ThemeData theme) {
   return Card(
     color: theme.cardColor,
     elevation: 2,
