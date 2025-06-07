@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../theme/theme_notifier.dart';
 import 'login_screen.dart';
+import 'workout_screen.dart';
 // import 'profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -46,7 +47,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final List<Widget> screens = [
       const _HomeDashboard(),
-      const Center(child: Text('Workout - Em construção')),
+      WorkoutScreen(),
       const Center(child: Text('Meals - Em construção')),
       const Center(child: Text('Water - Em construção')),
     ];
