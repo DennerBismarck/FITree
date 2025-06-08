@@ -40,10 +40,21 @@ class _WorkoutDetailsScreenState extends State<WorkoutDetailsScreen> {
         title: const Text("Editar Exercício"),
         content: Column(
           mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(controller: nomeController, decoration: const InputDecoration(labelText: "Nome")),
-            TextField(controller: seriesController, decoration: const InputDecoration(labelText: "Séries")),
-            TextField(controller: descansoController, decoration: const InputDecoration(labelText: "Descanso")),
+            children: [
+            TextField(
+              controller: nomeController,
+              decoration: const InputDecoration(labelText: "Nome"),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: seriesController,
+              decoration: const InputDecoration(labelText: "Séries"),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: descansoController,
+              decoration: const InputDecoration(labelText: "Descanso"),
+            ),
           ],
         ),
         actions: [
@@ -76,16 +87,26 @@ class _WorkoutDetailsScreenState extends State<WorkoutDetailsScreen> {
               itemCount: widget.treino.exercicios.length,
               itemBuilder: (context, index) {
                 final exercicio = widget.treino.exercicios[index];
-                return Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(exercicio['nome'] ?? '', style: Theme.of(context).textTheme.titleMedium),
-                      const SizedBox(height: 4),
-                      Text(exercicio['detalhes'] ?? '', style: Theme.of(context).textTheme.bodySmall),
-                      const Divider(),
-                    ],
+                return Card(
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: ListTile(
+                    title: Text(exercicio['nome'] ?? '', style: Theme.of(context).textTheme.titleMedium),
+                    subtitle: Text(
+                      "Séries: ${exercicio['series'] ?? ''} | Descanso: ${exercicio['descanso'] ?? ''}",
+                    ),
+                    trailing: PopupMenuButton<String>(
+                      onSelected: (value) {
+                        if (value == 'editar') {
+                          _editarExercicio(index);
+                        } else if (value == 'remover') {
+                          _removerExercicio(index);
+                        }
+                      },
+                      itemBuilder: (BuildContext context) => [
+                        const PopupMenuItem(value: 'editar', child: Text('Editar')),
+                        const PopupMenuItem(value: 'remover', child: Text('Remover')),
+                      ],
+                    ),
                   ),
                 );
               },
@@ -109,6 +130,14 @@ class _WorkoutDetailsScreenState extends State<WorkoutDetailsScreen> {
             ),
           )
         ],
+      ),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 80.0), 
+        child: FloatingActionButton(
+          onPressed: _adicionarExercicio,
+          child: const Icon(Icons.add),
+          backgroundColor: Colors.green,
+        ),
       ),
     );
   }

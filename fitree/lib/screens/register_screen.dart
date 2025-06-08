@@ -6,128 +6,122 @@ class SignUpScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F1E7), // Fundo neutro
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 32),
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                const SizedBox(height: 40),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // LOGO
+              Image.asset(
+                'lib/assets/images/fitree_logo.png',
+                height: 120,
+              ),
+              const SizedBox(height: 40),
 
-                // LOGO
-                Image.asset(
-                  'lib/assets/images/fitree_logo.png',
-                  height: 100,
+              // TÍTULO
+              Text(
+                "Create your FiTree account",
+                textAlign: TextAlign.center,
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  color: theme.colorScheme.primary,
+                  fontWeight: FontWeight.bold,
                 ),
+              ),
 
-                const SizedBox(height: 20),
+              const SizedBox(height: 32),
 
-                const Text(
-                  "Create your FiTree account",
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF224B2F), // Verde escuro
+              // NOME
+              TextField(
+                style: TextStyle(color: theme.colorScheme.primary),
+                decoration: InputDecoration(
+                  hintText: "Full Name",
+                  hintStyle: TextStyle(color: theme.colorScheme.primary.withOpacity(0.5)),
+                  filled: true,
+                  fillColor: theme.inputDecorationTheme.fillColor,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
                   ),
                 ),
+              ),
 
-                const SizedBox(height: 32),
+              const SizedBox(height: 16),
 
-                // NOME
-                TextField(
-                  style: const TextStyle(color: Color(0xFF224B2F)),
-                  decoration: InputDecoration(
-                    hintText: "Full Name",
-                    hintStyle: const TextStyle(color: Color(0x80224B2F)),
-                    filled: true,
-                    fillColor: Color(0xFFE5CFA2), // Bege suave
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
+              // EMAIL
+              TextField(
+                style: TextStyle(color: theme.colorScheme.primary),
+                decoration: InputDecoration(
+                  hintText: "Email",
+                  hintStyle: TextStyle(color: theme.colorScheme.primary.withOpacity(0.5)),
+                  filled: true,
+                  fillColor: theme.inputDecorationTheme.fillColor,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
                   ),
                 ),
+              ),
 
-                const SizedBox(height: 16),
+              const SizedBox(height: 16),
 
-                // EMAIL
-                TextField(
-                  style: const TextStyle(color: Color(0xFF224B2F)),
-                  decoration: InputDecoration(
-                    hintText: "Email",
-                    hintStyle: const TextStyle(color: Color(0x80224B2F)),
-                    filled: true,
-                    fillColor: Color(0xFFE5CFA2),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
+              // SENHA
+              TextField(
+                obscureText: true,
+                style: TextStyle(color: theme.colorScheme.primary),
+                decoration: InputDecoration(
+                  hintText: "Password",
+                  hintStyle: TextStyle(color: theme.colorScheme.primary.withOpacity(0.5)),
+                  filled: true,
+                  fillColor: theme.inputDecorationTheme.fillColor,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
                   ),
                 ),
+              ),
 
-                const SizedBox(height: 16),
+              const SizedBox(height: 24),
 
-                // SENHA
-                TextField(
-                  obscureText: true,
-                  style: const TextStyle(color: Color(0xFF224B2F)),
-                  decoration: InputDecoration(
-                    hintText: "Password",
-                    hintStyle: const TextStyle(color: Color(0x80224B2F)),
-                    filled: true,
-                    fillColor: Color(0xFFE5CFA2),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 24),
-
-                // BOTÃO CADASTRAR
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      // Aqui você pode adicionar a lógica de cadastro
-                      // Por enquanto, apenas redireciona para a tela inicial
-                      Navigator.pushReplacementNamed(context, AppRoutes.home);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF709255), // Verde médio
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: const Text(
-                      "Sign Up",
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-
-                // VOLTAR PARA LOGIN
-                TextButton(
+              // BOTÃO CADASTRAR
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
                   onPressed: () {
-                    Navigator.pop(context);
+                    Navigator.pushReplacementNamed(context, AppRoutes.home);
                   },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: theme.colorScheme.secondary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
                   child: const Text(
-                    "Already have an account? Log in",
-                    style: TextStyle(color: Color(0xFF709255)),
+                    "Sign Up",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),
+              ),
 
-                const SizedBox(height: 32),
-              ],
-            ),
+              const SizedBox(height: 16),
+
+              // VOLTAR PARA LOGIN
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Text(
+                  "Already have an account? Log in",
+                  style: TextStyle(color: theme.colorScheme.secondary),
+                ),
+              ),
+            ],
           ),
         ),
       ),
