@@ -26,7 +26,7 @@ class AppRoutes {
     home: (_) => const HomeScreen(),
   //  profile: (_) => ProfileScreen(),
     workout: (_) => WorkoutScreen(),
-  //  meal: (_) => MealScreen(),
+    meal: (_) => MealScreen(),
   //  water: (_) => WaterScreen(),
   //  sleep: (_) => SleepScreen(),
   //  report: (_) => ReportScreen(),
