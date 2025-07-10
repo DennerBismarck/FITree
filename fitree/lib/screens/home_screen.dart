@@ -5,6 +5,7 @@ import '../theme/theme_notifier.dart';
 import 'login_screen.dart';
 import 'workout_screen.dart';
 import 'meal_screen.dart';
+import 'water_screen.dart';
 // import 'profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -50,7 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
       const _HomeDashboard(),
       WorkoutScreen(),
       MealScreen(),
-      const Center(child: Text('Water - Em construção')),
+      WaterScreen(),
     ];
 
     return Scaffold(
@@ -80,7 +81,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       bottomNavigationBar: FitNavBar(itemSelectedCallback: (index) {
         selectedIndex.value = index;
-        // Se quiser fazer alguma ação extra ao mudar de tela, faça aqui
       }),
     );
   }
@@ -129,7 +129,6 @@ Widget _buildCard(
       subtitle: Text(subtitle, style: theme.textTheme.bodySmall),
       trailing: const Icon(Icons.arrow_forward_ios),
       onTap: () {
-        // Pode navegar para a tela correspondente futuramente
       },
     ),
   );
