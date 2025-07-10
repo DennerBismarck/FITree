@@ -16,7 +16,7 @@ class _MealScreenState extends State<MealScreen> {
     RefeicaoModel(
       refeicao: 'Café da Manhã',
       completo: true,
-      data: '2025-07-06',
+      data: '2025-07-09',
       alimentos: [
         AlimentoModel(nome: 'Cereal Integral', calorias: 150, carboidratos: 30, proteinas: 3, gorduras: 1),
         AlimentoModel(nome: 'Leite Semi-desnatado', calorias: 60, carboidratos: 5, proteinas: 6, gorduras: 2),
@@ -27,7 +27,7 @@ class _MealScreenState extends State<MealScreen> {
     RefeicaoModel(
       refeicao: 'Almoço',
       completo: true,
-      data: '2025-07-06',
+      data: '2025-07-09',
       alimentos: [
         AlimentoModel(nome: 'Salada Mista', calorias: 80, carboidratos: 15, proteinas: 3, gorduras: 1),
         AlimentoModel(nome: 'Peito de Peru Grelhado', calorias: 140, carboidratos: 0, proteinas: 28, gorduras: 2.5),
@@ -38,7 +38,7 @@ class _MealScreenState extends State<MealScreen> {
     RefeicaoModel(
       refeicao: 'Janta',
       completo: true,
-      data: '2025-07-06',
+      data: '2025-07-09',
       alimentos: [
         AlimentoModel(nome: 'Sopa de Legumes', calorias: 100, carboidratos: 20, proteinas: 5, gorduras: 2),
         AlimentoModel(nome: 'Ovo Cozido', calorias: 80, carboidratos: 1, proteinas: 7, gorduras: 6),
@@ -48,7 +48,7 @@ class _MealScreenState extends State<MealScreen> {
     RefeicaoModel(
       refeicao: 'Café da Manhã',
       completo: false,
-      data: '2025-07-07',
+      data: '2025-07-10',
       alimentos: [
         AlimentoModel(nome: 'Pão de Forma Integral', calorias: 110, carboidratos: 22, proteinas: 4, gorduras: 1.5),
         AlimentoModel(nome: 'Queijo Cottage', calorias: 70, carboidratos: 3, proteinas: 12, gorduras: 1),
@@ -59,7 +59,7 @@ class _MealScreenState extends State<MealScreen> {
     RefeicaoModel(
       refeicao: 'Almoço',
       completo: false,
-      data: '2025-07-07',
+      data: '2025-07-10',
       alimentos: [
         AlimentoModel(nome: 'Arroz Branco', calorias: 130, carboidratos: 28, proteinas: 2.7, gorduras: 0.3),
         AlimentoModel(nome: 'Feijão', calorias: 70, carboidratos: 13, proteinas: 4.5, gorduras: 0.5),
@@ -70,7 +70,7 @@ class _MealScreenState extends State<MealScreen> {
     RefeicaoModel(
       refeicao: 'Lanche',
       completo: false,
-      data: '2025-07-07',
+      data: '2025-07-10',
       alimentos: [
         AlimentoModel(nome: 'Iogurte Natural', calorias: 80, carboidratos: 10, proteinas: 8, gorduras: 1),
       ],
@@ -79,7 +79,7 @@ class _MealScreenState extends State<MealScreen> {
     RefeicaoModel(
       refeicao: 'Janta',
       completo: false,
-      data: '2025-07-07',
+      data: '2025-07-10',
       alimentos: [
         AlimentoModel(nome: 'Frango Desfiado', calorias: 120, carboidratos: 0, proteinas: 22, gorduras: 3),
         AlimentoModel(nome: 'Purê de Batata', calorias: 100, carboidratos: 20, proteinas: 2, gorduras: 2),
@@ -94,7 +94,7 @@ class _MealScreenState extends State<MealScreen> {
   @override
   void initState() {
     super.initState();
-    _selectedFilterDate = DateTime(2025, 7, 7);
+    _selectedFilterDate = DateTime.now();
     _filterMeals();
   }
 
@@ -179,9 +179,9 @@ class _MealScreenState extends State<MealScreen> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Planejamento Alimentar'), // Título fixo
+            const Text('Planejamento Alimentar'), 
             Text(
-              DateFormat('dd/MM/yyyy').format(_selectedFilterDate), // Data abaixo do título
+              DateFormat('dd/MM/yyyy').format(_selectedFilterDate), 
               style: Theme.of(context).textTheme.titleSmall?.copyWith(color: Colors.white70),
             ),
           ],
@@ -197,11 +197,11 @@ class _MealScreenState extends State<MealScreen> {
             tooltip: 'Ver refeições de hoje',
             onPressed: () {
               setState(() {
-                _selectedFilterDate = DateTime(2025, 7, 7);
+                _selectedFilterDate = DateTime.now();
                 _filterMeals();
               });
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Exibindo refeições de hoje: ${DateFormat('dd/MM/yyyy').format(DateTime(2025, 7, 7))}')),
+                SnackBar(content: Text('Exibindo refeições de hoje: ${DateFormat('dd/MM/yyyy').format(DateTime.now())}')),
               );
             },
           ),

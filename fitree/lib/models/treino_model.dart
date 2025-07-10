@@ -2,11 +2,13 @@
 class TreinoModel {
   String titulo;
   bool completo;
+  String data;
   List<Map<String, String>> exercicios;
 
   TreinoModel({
     required this.titulo,
     required this.completo,
+    required this.data,
     required this.exercicios,
   });
 }
