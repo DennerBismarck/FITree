@@ -10,7 +10,13 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   // Inicializar o banco de dados
-  await dataService.inicializarBanco();
+  
+  try {
+    await dataService.inicializarBanco();
+    print('Banco inicializado com sucesso!');
+  } catch (e) {
+    print('Erro ao inicializar banco: $e');
+  }
   
   runApp(
     ChangeNotifierProvider(

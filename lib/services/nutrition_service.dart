@@ -9,16 +9,13 @@ class NutritionService {
   
   final DatabaseService _databaseService = DatabaseService();
 
- 
   Future<List<AlimentoModel>> searchFoods(String query) async {
     try {
-     
       final cachedFoods = await _searchCachedFoods(query);
       if (cachedFoods.isNotEmpty) {
         return cachedFoods;
       }
 
-      
       final url = Uri.parse('$_baseUrl/foods/search?api_key=$_apiKey');
       final response = await http.post(
         url,
@@ -38,7 +35,6 @@ class NutritionService {
           final alimento = _parseUSDAFood(food);
           if (alimento != null) {
             foods.add(alimento);
-           
             await _cacheFood(alimento, food['fdcId'].toString());
           }
         }
@@ -49,12 +45,10 @@ class NutritionService {
       }
     } catch (e) {
       print('Erro no serviço de nutrição: $e');
-      
-      return _getMockFoods(query);
+      return [];
     }
   }
 
- 
   Future<List<AlimentoModel>> _searchCachedFoods(String query) async {
     final cachedFoods = await _databaseService.searchAlimentos(query);
     return cachedFoods.map((food) => AlimentoModel(
@@ -66,11 +60,9 @@ class NutritionService {
     )).toList();
   }
 
- 
   AlimentoModel? _parseUSDAFood(Map<String, dynamic> food) {
     try {
       final nutrients = food['foodNutrients'] as List;
-      
       double calorias = 0;
       double carboidratos = 0;
       double proteinas = 0;
@@ -109,7 +101,6 @@ class NutritionService {
     }
   }
 
- 
   Future<void> _cacheFood(AlimentoModel alimento, String fdcId) async {
     await _databaseService.insertAlimento({
       'nome': alimento.nome,
@@ -120,51 +111,6 @@ class NutritionService {
       'fonte': 'USDA',
       'fdc_id': fdcId,
     });
-  }
-
-
-  List<AlimentoModel> _getMockFoods(String query) {
-    final mockFoods = [
-      AlimentoModel(
-        nome: 'Arroz branco cozido',
-        calorias: 130,
-        carboidratos: 28,
-        proteinas: 2.7,
-        gorduras: 0.3,
-      ),
-      AlimentoModel(
-        nome: 'Feijão preto cozido',
-        calorias: 132,
-        carboidratos: 24,
-        proteinas: 8.9,
-        gorduras: 0.5,
-      ),
-      AlimentoModel(
-        nome: 'Peito de frango grelhado',
-        calorias: 165,
-        carboidratos: 0,
-        proteinas: 31,
-        gorduras: 3.6,
-      ),
-      AlimentoModel(
-        nome: 'Banana',
-        calorias: 89,
-        carboidratos: 23,
-        proteinas: 1.1,
-        gorduras: 0.3,
-      ),
-      AlimentoModel(
-        nome: 'Aveia',
-        calorias: 389,
-        carboidratos: 66,
-        proteinas: 17,
-        gorduras: 7,
-      ),
-    ];
-
-    return mockFoods
-        .where((food) => food.nome.toLowerCase().contains(query.toLowerCase()))
-        .toList();
   }
 
   Future<AlimentoModel?> getFoodDetails(String fdcId) async {
@@ -181,7 +127,6 @@ class NutritionService {
     }
     return null;
   }
-
 
   Map<String, double> calculateMealNutrition(List<AlimentoModel> alimentos) {
     double totalCalorias = 0;
@@ -204,9 +149,7 @@ class NutritionService {
     };
   }
 
-
   Future<void> clearOldCache() async {
     await _databaseService.clearOldCache();
   }
 }
-

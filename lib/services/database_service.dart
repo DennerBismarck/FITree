@@ -28,6 +28,16 @@ class DatabaseService {
   }
 
   Future<void> _onCreate(Database db, int version) async {
+    // Tabela de usuários
+    await db.execute('''
+      CREATE TABLE usuarios (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nome TEXT NOT NULL,
+        email TEXT NOT NULL UNIQUE,
+        senha TEXT NOT NULL
+      )
+    ''');
+
     // Tabela de alimentos
     await db.execute('''
       CREATE TABLE alimentos (
@@ -39,7 +49,9 @@ class DatabaseService {
         gorduras REAL NOT NULL,
         fonte TEXT NOT NULL,
         fdc_id TEXT,
-        created_at TEXT NOT NULL
+        created_at TEXT NOT NULL,
+        usuario_id INTEGER,
+        FOREIGN KEY (usuario_id) REFERENCES usuarios (id)
       )
     ''');
 
@@ -54,7 +66,9 @@ class DatabaseService {
         dificuldade TEXT NOT NULL,
         instrucoes TEXT NOT NULL,
         fonte TEXT NOT NULL,
-        created_at TEXT NOT NULL
+        created_at TEXT NOT NULL,
+        usuario_id INTEGER,
+        FOREIGN KEY (usuario_id) REFERENCES usuarios (id)
       )
     ''');
 
@@ -66,7 +80,9 @@ class DatabaseService {
         data TEXT NOT NULL,
         completo INTEGER NOT NULL DEFAULT 0,
         calorias_totais REAL NOT NULL DEFAULT 0,
-        created_at TEXT NOT NULL
+        created_at TEXT NOT NULL,
+        usuario_id INTEGER,
+        FOREIGN KEY (usuario_id) REFERENCES usuarios (id)
       )
     ''');
 
@@ -90,7 +106,9 @@ class DatabaseService {
         data TEXT NOT NULL,
         completo INTEGER NOT NULL DEFAULT 0,
         duracao_minutos INTEGER,
-        created_at TEXT NOT NULL
+        created_at TEXT NOT NULL,
+        usuario_id INTEGER,
+        FOREIGN KEY (usuario_id) REFERENCES usuarios (id)
       )
     ''');
 
@@ -110,6 +128,39 @@ class DatabaseService {
     ''');
   }
 
+  // Métodos para usuários
+  Future<int> insertUsuario(Map<String, dynamic> usuario) async {
+    final db = await database;
+    return await db.insert('usuarios', usuario);
+  }
+
+  Future<Map<String, dynamic>?> getUsuarioByEmail(String email) async {
+    final db = await database;
+    final result = await db.query('usuarios', where: 'email = ?', whereArgs: [email]);
+    return result.isNotEmpty ? result.first : null;
+  }
+
+  Future<Map<String, dynamic>?> getUsuarioById(int id) async {
+    final db = await database;
+    final result = await db.query('usuarios', where: 'id = ?', whereArgs: [id]);
+    return result.isNotEmpty ? result.first : null;
+  }
+
+  Future<Map<String,dynamic>?>getUsuarioByEmailAndPassword(String email, String senha) async {
+    final db = await database;
+    final result = await db.query(
+      'usuarios',
+      where: 'email = ? AND senha = ?',
+      whereArgs: [email, senha],
+    );
+    return result.isNotEmpty ? result.first : null;
+  }
+
+  Future<List<Map<String, dynamic>>> getUsuarios() async {
+    final db = await database;
+    return await db.query('usuarios', orderBy: 'nome ASC');
+  }
+
   // Métodos para alimentos
   Future<int> insertAlimento(Map<String, dynamic> alimento) async {
     final db = await database;
@@ -117,8 +168,11 @@ class DatabaseService {
     return await db.insert('alimentos', alimento);
   }
 
-  Future<List<Map<String, dynamic>>> getAlimentos() async {
+  Future<List<Map<String, dynamic>>> getAlimentos({int? usuarioId}) async {
     final db = await database;
+    if (usuarioId != null) {
+      return await db.query('alimentos', where: 'usuario_id = ?', whereArgs: [usuarioId], orderBy: 'nome ASC');
+    }
     return await db.query('alimentos', orderBy: 'nome ASC');
   }
 
@@ -128,13 +182,31 @@ class DatabaseService {
     return result.isNotEmpty ? result.first : null;
   }
 
-  Future<List<Map<String, dynamic>>> searchAlimentos(String query) async {
+  Future<List<Map<String, dynamic>>> searchAlimentos(String query, {int? usuarioId}) async {
     final db = await database;
+    if (usuarioId != null) {
+      return await db.query(
+        'alimentos',
+        where: 'nome LIKE ? AND usuario_id = ?',
+        whereArgs: ['%$query%', usuarioId],
+        orderBy: 'nome ASC',
+      );
+    }
     return await db.query(
       'alimentos',
       where: 'nome LIKE ?',
       whereArgs: ['%$query%'],
       orderBy: 'nome ASC',
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> getRefeicoesByDataUsuario(String data, int usuarioId) async {
+    final db = await database;
+    return await db.query(
+      'refeicoes_usuario',
+      where: 'data = ? AND usuario_id = ?',
+      whereArgs: [data, usuarioId],
+      orderBy: 'created_at ASC',
     );
   }
 
@@ -145,13 +217,24 @@ class DatabaseService {
     return await db.insert('exercicios', exercicio);
   }
 
-  Future<List<Map<String, dynamic>>> getExercicios() async {
+  Future<List<Map<String, dynamic>>> getExercicios({int? usuarioId}) async {
     final db = await database;
+    if (usuarioId != null) {
+      return await db.query('exercicios', where: 'usuario_id = ?', whereArgs: [usuarioId], orderBy: 'nome ASC');
+    }
     return await db.query('exercicios', orderBy: 'nome ASC');
   }
 
-  Future<List<Map<String, dynamic>>> getExerciciosByMusculo(String musculo) async {
+  Future<List<Map<String, dynamic>>> getExerciciosByMusculo(String musculo, {int? usuarioId}) async {
     final db = await database;
+    if (usuarioId != null) {
+      return await db.query(
+        'exercicios',
+        where: 'musculo = ? AND usuario_id = ?',
+        whereArgs: [musculo, usuarioId],
+        orderBy: 'nome ASC',
+      );
+    }
     return await db.query(
       'exercicios',
       where: 'musculo = ?',
@@ -160,8 +243,25 @@ class DatabaseService {
     );
   }
 
-  Future<List<Map<String, dynamic>>> searchExercicios(String query) async {
+  Future<List<Map<String, dynamic>>> getTreinosByDataUsuario(String data, int usuarioId) async {
     final db = await database;
+    return await db.query(
+      'treinos_usuario',
+      where: 'data = ? AND usuario_id = ?',
+      whereArgs: [data, usuarioId],
+      orderBy: 'created_at ASC',
+    );
+  }
+  Future<List<Map<String, dynamic>>> searchExercicios(String query, {int? usuarioId}) async {
+    final db = await database;
+    if (usuarioId != null) {
+      return await db.query(
+        'exercicios',
+        where: '(nome LIKE ? OR musculo LIKE ?) AND usuario_id = ?',
+        whereArgs: ['%$query%', '%$query%', usuarioId],
+        orderBy: 'nome ASC',
+      );
+    }
     return await db.query(
       'exercicios',
       where: 'nome LIKE ? OR musculo LIKE ?',
@@ -177,8 +277,16 @@ class DatabaseService {
     return await db.insert('refeicoes_usuario', refeicao);
   }
 
-  Future<List<Map<String, dynamic>>> getRefeicoesByData(String data) async {
+  Future<List<Map<String, dynamic>>> getRefeicoesByData(String data, {int? usuarioId}) async {
     final db = await database;
+    if (usuarioId != null) {
+      return await db.query(
+        'refeicoes_usuario',
+        where: 'data = ? AND usuario_id = ?',
+        whereArgs: [data, usuarioId],
+        orderBy: 'created_at ASC',
+      );
+    }
     return await db.query(
       'refeicoes_usuario',
       where: 'data = ?',
@@ -220,8 +328,16 @@ class DatabaseService {
     return await db.insert('treinos_usuario', treino);
   }
 
-  Future<List<Map<String, dynamic>>> getTreinosByData(String data) async {
+  Future<List<Map<String, dynamic>>> getTreinosByData(String data, {int? usuarioId}) async {
     final db = await database;
+    if (usuarioId != null) {
+      return await db.query(
+        'treinos_usuario',
+        where: 'data = ? AND usuario_id = ?',
+        whereArgs: [data, usuarioId],
+        orderBy: 'created_at ASC',
+      );
+    }
     return await db.query(
       'treinos_usuario',
       where: 'data = ?',
@@ -271,4 +387,3 @@ class DatabaseService {
     await db.close();
   }
 }
-

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../routes/app_routes.dart';
+import '../controllers/data_service.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -74,7 +75,30 @@ class LoginScreen extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
+                    FocusScope.of(context).unfocus();
+                    final emailController = TextEditingController();
+                    final passwordController = TextEditingController();
+
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (context) => Center(child: CircularProgressIndicator()),
+                    );
+
+                    final success = await dataService.login(
+                      emailController.text.trim(),
+                      passwordController.text,
+                    );
+
+                    Navigator.of(context).pop(); // Remove loading dialog
+
+                    if (!success) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Invalid email or password')),
+                      );
+                      return;
+                    }
                     Navigator.pushReplacementNamed(context, AppRoutes.home);
                   },
                   style: ElevatedButton.styleFrom(
@@ -97,6 +121,7 @@ class LoginScreen extends StatelessWidget {
               // LINK DE CADASTRO
               TextButton(
                 onPressed: () {
+                  FocusScope.of(context).unfocus();
                   Navigator.pushNamed(context, AppRoutes.register);
                 },
                 child: Text(

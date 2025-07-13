@@ -6,7 +6,7 @@ class TreinoService {
   final ExerciseService _exerciseService = ExerciseService();
   final DatabaseService _databaseService = DatabaseService();
 
-  // Obter treinos mockados (para compatibilidade)
+  
   List<TreinoModel> getTreinosMockados() {
     return [
       TreinoModel(

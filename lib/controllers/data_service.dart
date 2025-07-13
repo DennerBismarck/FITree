@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import '../services/nutrition_service.dart';
 import '../services/exercise_service.dart';
 import '../services/database_service.dart';
@@ -8,129 +6,150 @@ import '../models/refeicao_model.dart';
 import '../models/treino_model.dart';
 
 class DataService {
-  
   final ValueNotifier<int> selectedIndex = ValueNotifier<int>(0);
 
-  
   final NutritionService _nutritionService = NutritionService();
   final ExerciseService _exerciseService = ExerciseService();
   final DatabaseService _databaseService = DatabaseService();
 
-  void onBottomNavTapped(int index) {
-    selectedIndex.value = index;
+  int? _usuarioId;
+
+  void onBottomNavTapped(int index) => selectedIndex.value = index;
+
+  // Funções de login
+  Future<bool> login(String email, String senha) async {
+    final usuario = await _databaseService.getUsuarioByEmailAndPassword(email, senha);
+    if (usuario != null) {
+      _usuarioId = usuario['id'];
+      return true;
+    }
+    return false;
   }
 
-  Future<List<AlimentoModel>> buscarAlimentos(String query) async {
-    return await _nutritionService.searchFoods(query);
+  Future<int> registrarUsuario(String nome, String email, String senha) async {
+    final usuarioExistente = await _databaseService.getUsuarioByEmail(email);
+    if (usuarioExistente != null) {
+      throw Exception('Usuário já existe');
+    }
+    final id = await _databaseService.insertUsuario({
+      'nome': nome,
+      'email': email,
+      'senha': senha,
+    });
+    _usuarioId = id;
+    return id;
   }
 
-  Future<Map<String, double>> calcularNutricaoRefeicao(List<AlimentoModel> alimentos) async {
-    return _nutritionService.calculateMealNutrition(alimentos);
+  void logout() {
+    _usuarioId = null;
   }
 
-  
+  int? get usuarioId => _usuarioId;
+
+  Future<List<AlimentoModel>> buscarAlimentos(String query) =>
+      _nutritionService.searchFoods(query);
+
+  Future<Map<String, double>> calcularNutricaoRefeicao(List<AlimentoModel> alimentos) async =>
+      await _nutritionService.calculateMealNutrition(alimentos);
+
   Future<List<ExercicioModel>> buscarExercicios({
     String? nome,
     String? musculo,
     String? tipo,
     String? dificuldade,
+  }) =>
+      _exerciseService.searchExercises(
+        name: nome,
+        muscle: musculo,
+        type: tipo,
+        difficulty: dificuldade,
+      );
+
+  Future<List<ExercicioModel>> buscarExerciciosPorMusculo(String musculo) =>
+      _exerciseService.getExercisesByMuscle(musculo);
+
+  List<String> getGruposMusculares() => _exerciseService.getAvailableMuscleGroups();
+
+  String traduzirGrupoMuscular(String musculo) =>
+      _exerciseService.translateMuscleGroup(musculo);
+
+  Future<void> inicializarBanco() async => await _databaseService.database;
+
+  Future<int> salvarRecurso<T>({
+    required List<T> itens,
+    required Future<List<Map<String, dynamic>>> Function(String) searchFn,
+    required Future<int> Function(Map<String, dynamic>) insertFn,
+    required Map<String, dynamic> Function(T) toMap,
+    required Future<void> Function(Map<String, dynamic>) insertRelation,
+    required int relationId,
+    required String relationKey,
+    required String itemKey,
   }) async {
-    return await _exerciseService.searchExercises(
-      name: nome,
-      muscle: musculo,
-      type: tipo,
-      difficulty: dificuldade,
-    );
+    for (var item in itens) {
+      final existentes = await searchFn((item as dynamic).nome);
+      int itemId;
+      if (existentes.isNotEmpty) {
+        itemId = existentes.first['id'];
+      } else {
+        itemId = await insertFn(toMap(item));
+      }
+      await insertRelation({
+        relationKey: relationId,
+        itemKey: itemId,
+        ..._getRelationExtras(item)
+      });
+    }
+    return relationId;
   }
 
-  Future<List<ExercicioModel>> buscarExerciciosPorMusculo(String musculo) async {
-    return await _exerciseService.getExercisesByMuscle(musculo);
+  Map<String, dynamic> _getRelationExtras(dynamic item) {
+    if (item is AlimentoModel) {
+      return {'quantidade': 1.0};
+    } else if (item is ExercicioModel) {
+      return {
+        'series': item.series,
+        'repeticoes': item.repeticoes,
+        'peso': item.peso,
+        'tempo_segundos': item.tempoSegundos,
+      };
+    }
+    return {};
   }
 
-  List<String> getGruposMusculares() {
-    return _exerciseService.getAvailableMuscleGroups();
-  }
-
-  String traduzirGrupoMuscular(String musculo) {
-    return _exerciseService.translateMuscleGroup(musculo);
-  }
-
-
-  Future<void> inicializarBanco() async {
-    await _databaseService.database;
-  }
-
- 
   Future<int> salvarRefeicao({
     required String refeicao,
     required String data,
     required List<AlimentoModel> alimentos,
   }) async {
-    final nutricao = calcularNutricaoRefeicao(alimentos);
-    final calorias = (await nutricao)['calorias'] ?? 0;
+    final nutricao = await calcularNutricaoRefeicao(alimentos);
+    final calorias = nutricao['calorias'] ?? 0;
 
     final refeicaoId = await _databaseService.insertRefeicaoUsuario({
       'refeicao': refeicao,
       'data': data,
       'completo': 0,
       'calorias_totais': calorias,
+      'usuario_id': _usuarioId,
     });
 
-  
-    for (var alimento in alimentos) {
-      
-      final alimentosExistentes = await _databaseService.searchAlimentos(alimento.nome);
-      int alimentoId;
-
-      if (alimentosExistentes.isNotEmpty) {
-        alimentoId = alimentosExistentes.first['id'];
-      } else {
-        alimentoId = await _databaseService.insertAlimento({
-          'nome': alimento.nome,
-          'calorias': alimento.calorias,
-          'carboidratos': alimento.carboidratos,
-          'proteinas': alimento.proteinas,
-          'gorduras': alimento.gorduras,
-          'fonte': 'USDA',
-        });
-      }
-
-      await _databaseService.insertAlimentoRefeicao({
-        'refeicao_id': refeicaoId,
-        'alimento_id': alimentoId,
-        'quantidade': 1.0,
-      });
-    }
-
-    return refeicaoId;
+    return salvarRecurso<AlimentoModel>(
+      itens: alimentos,
+      searchFn: _databaseService.searchAlimentos,
+      insertFn: _databaseService.insertAlimento,
+      toMap: (alimento) => {
+        'nome': alimento.nome,
+        'calorias': alimento.calorias,
+        'carboidratos': alimento.carboidratos,
+        'proteinas': alimento.proteinas,
+        'gorduras': alimento.gorduras,
+        'fonte': 'USDA',
+      },
+      insertRelation: _databaseService.insertAlimentoRefeicao,
+      relationId: refeicaoId,
+      relationKey: 'refeicao_id',
+      itemKey: 'alimento_id',
+    );
   }
-
-  Future<List<RefeicaoModel>> getRefeicoesPorData(String data) async {
-    final refeicoes = await _databaseService.getRefeicoesByData(data);
-    final refeicoesModel = <RefeicaoModel>[];
-
-    for (var refeicao in refeicoes) {
-      final alimentosRefeicao = await _databaseService.getAlimentosRefeicao(refeicao['id']);
-      final alimentos = alimentosRefeicao.map((ar) => AlimentoModel(
-        nome: ar['nome'],
-        calorias: ar['calorias'],
-        carboidratos: ar['carboidratos'],
-        proteinas: ar['proteinas'],
-        gorduras: ar['gorduras'],
-      )).toList();
-
-      refeicoesModel.add(RefeicaoModel(
-        refeicao: refeicao['refeicao'],
-        completo: refeicao['completo'] == 1,
-        data: refeicao['data'],
-        alimentos: alimentos,
-        caloriasTotais: refeicao['calorias_totais'],
-      ));
-    }
-
-    return refeicoesModel;
-  }
-
 
   Future<int> salvarTreino({
     required String nome,
@@ -143,46 +162,70 @@ class DataService {
       'data': data,
       'completo': 0,
       'duracao_minutos': duracaoMinutos,
+      'usuario_id': _usuarioId,
     });
 
-    for (var exercicio in exercicios) {
-      final exerciciosExistentes = await _databaseService.searchExercicios(exercicio.nome);
-      int exercicioId;
+    return salvarRecurso<ExercicioModel>(
+      itens: exercicios,
+      searchFn: _databaseService.searchExercicios,
+      insertFn: _databaseService.insertExercicio,
+      toMap: (exercicio) => {
+        'nome': exercicio.nome,
+        'tipo': exercicio.tipo,
+        'musculo': exercicio.musculo,
+        'equipamento': exercicio.equipamento,
+        'dificuldade': exercicio.dificuldade,
+        'instrucoes': exercicio.instrucoes,
+        'fonte': 'API-Ninjas',
+      },
+      insertRelation: _databaseService.insertExercicioTreino,
+      relationId: treinoId,
+      relationKey: 'treino_id',
+      itemKey: 'exercicio_id',
+    );
+  }
 
-      if (exerciciosExistentes.isNotEmpty) {
-        exercicioId = exerciciosExistentes.first['id'];
-      } else {
-        exercicioId = await _databaseService.insertExercicio({
-          'nome': exercicio.nome,
-          'tipo': exercicio.tipo,
-          'musculo': exercicio.musculo,
-          'equipamento': exercicio.equipamento,
-          'dificuldade': exercicio.dificuldade,
-          'instrucoes': exercicio.instrucoes,
-          'fonte': 'API-Ninjas',
-        });
-      }
-
-      await _databaseService.insertExercicioTreino({
-        'treino_id': treinoId,
-        'exercicio_id': exercicioId,
-        'series': exercicio.series,
-        'repeticoes': exercicio.repeticoes,
-        'peso': exercicio.peso,
-        'tempo_segundos': exercicio.tempoSegundos,
-      });
-    }
-
-    return treinoId;
+  Future<List<RefeicaoModel>> getRefeicoesPorData(String data) async {
+    if (_usuarioId == null) return [];
+    final refeicoes = await _databaseService.getRefeicoesByDataUsuario(data, _usuarioId!);
+    return Future.wait(refeicoes.map((refeicao) async {
+      final alimentosRefeicao = await _databaseService.getAlimentosRefeicao(refeicao['id']);
+      final alimentos = alimentosRefeicao.map(_alimentoFromMap).toList();
+      return RefeicaoModel(
+        refeicao: refeicao['refeicao'],
+        completo: refeicao['completo'] == 1,
+        data: refeicao['data'],
+        alimentos: alimentos,
+        caloriasTotais: refeicao['calorias_totais'],
+      );
+    }));
   }
 
   Future<List<TreinoModel>> getTreinosPorData(String data) async {
-    final treinos = await _databaseService.getTreinosByData(data);
-    final treinosModel = <TreinoModel>[];
-
-    for (var treino in treinos) {
+    if (_usuarioId == null) return [];
+    final treinos = await _databaseService.getTreinosByDataUsuario(data, _usuarioId!);
+    return Future.wait(treinos.map((treino) async {
       final exerciciosTreino = await _databaseService.getExerciciosTreino(treino['id']);
-      final exercicios = exerciciosTreino.map((et) => ExercicioModel(
+      final exercicios = exerciciosTreino.map(_exercicioFromMap).toList();
+      return TreinoModel(
+        titulo: treino['nome'],
+        completo: treino['completo'] == 1,
+        data: treino['data'],
+        exercicios: exercicios,
+        duracaoMinutos: treino['duracao_minutos'],
+      );
+    }));
+  }
+
+  AlimentoModel _alimentoFromMap(Map<String, dynamic> ar) => AlimentoModel(
+        nome: ar['nome'],
+        calorias: ar['calorias'],
+        carboidratos: ar['carboidratos'],
+        proteinas: ar['proteinas'],
+        gorduras: ar['gorduras'],
+      );
+
+  ExercicioModel _exercicioFromMap(Map<String, dynamic> et) => ExercicioModel(
         nome: et['nome'],
         tipo: et['tipo'],
         musculo: et['musculo'],
@@ -193,21 +236,8 @@ class DataService {
         repeticoes: et['repeticoes'],
         peso: et['peso'],
         tempoSegundos: et['tempo_segundos'],
-      )).toList();
+      );
 
-      treinosModel.add(TreinoModel(
-        titulo: treino['nome'],
-        completo: treino['completo'] == 1,
-        data: treino['data'],
-        exercicios: exercicios,
-        duracaoMinutos: treino['duracao_minutos'],
-      ));
-    }
-
-    return treinosModel;
-  }
-
-  // Limpeza de cache
   Future<void> limparCacheAntigo() async {
     await _nutritionService.clearOldCache();
     await _exerciseService.clearOldCache();

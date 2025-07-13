@@ -14,7 +14,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
     TreinoModel(
       titulo: "Treino A - Peito",
       completo: true,
-      data: '2025-07-07',
+      data: '2025-07-07', 
       exercicios: [
         ExercicioModel(
           nome: "Supino Reto",

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../routes/app_routes.dart';
+import '../controllers/data_service.dart';
 
 class SignUpScreen extends StatelessWidget {
   const SignUpScreen({super.key});
@@ -40,7 +41,8 @@ class SignUpScreen extends StatelessWidget {
                 style: TextStyle(color: theme.colorScheme.primary),
                 decoration: InputDecoration(
                   hintText: "Full Name",
-                  hintStyle: TextStyle(color: theme.colorScheme.primary.withOpacity(0.5)),
+                  hintStyle: TextStyle(
+                      color: theme.colorScheme.primary.withOpacity(0.5)),
                   filled: true,
                   fillColor: theme.inputDecorationTheme.fillColor,
                   border: OutlineInputBorder(
@@ -57,7 +59,8 @@ class SignUpScreen extends StatelessWidget {
                 style: TextStyle(color: theme.colorScheme.primary),
                 decoration: InputDecoration(
                   hintText: "Email",
-                  hintStyle: TextStyle(color: theme.colorScheme.primary.withOpacity(0.5)),
+                  hintStyle: TextStyle(
+                      color: theme.colorScheme.primary.withOpacity(0.5)),
                   filled: true,
                   fillColor: theme.inputDecorationTheme.fillColor,
                   border: OutlineInputBorder(
@@ -75,7 +78,8 @@ class SignUpScreen extends StatelessWidget {
                 style: TextStyle(color: theme.colorScheme.primary),
                 decoration: InputDecoration(
                   hintText: "Password",
-                  hintStyle: TextStyle(color: theme.colorScheme.primary.withOpacity(0.5)),
+                  hintStyle: TextStyle(
+                      color: theme.colorScheme.primary.withOpacity(0.5)),
                   filled: true,
                   fillColor: theme.inputDecorationTheme.fillColor,
                   border: OutlineInputBorder(
@@ -91,7 +95,37 @@ class SignUpScreen extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
+                    FocusScope.of(context).unfocus();
+                    final nameController = TextEditingController();
+                    final emailController = TextEditingController();
+                    final passwordController = TextEditingController();
+
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (context) =>
+                          const Center(child: CircularProgressIndicator()),
+                    );
+
+                    try {
+                      await dataService.registrarUsuario(
+                        nameController.text.trim(),
+                        emailController.text.trim(),
+                        passwordController.text.trim(),
+                      );
+                      Navigator.of(context).pop(); // Remove loading
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text('Registration successful!')),
+                      );
+                    } on Exception catch (e) {
+                      Navigator.of(context).pop(); // Remove loading
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(e.toString())),
+                      );
+                      return;
+                    }
                     Navigator.pushReplacementNamed(context, AppRoutes.home);
                   },
                   style: ElevatedButton.styleFrom(

@@ -56,8 +56,8 @@ class ExerciseService {
       }
     } catch (e) {
       print('Erro no serviço de exercícios: $e');
-      // Retornar dados mockados em caso de erro
-      return _getMockExercises(muscle ?? name ?? '');
+      // Não retorna mocks
+      return [];
     }
   }
 
@@ -131,60 +131,6 @@ class ExerciseService {
       'instrucoes': exercicio.instrucoes,
       'fonte': 'API-Ninjas',
     });
-  }
-
-  // Dados mockados para fallback
-  List<ExercicioModel> _getMockExercises(String query) {
-    final mockExercises = [
-      ExercicioModel(
-        nome: 'Flexão de braço',
-        tipo: 'strength',
-        musculo: 'chest',
-        equipamento: 'body_only',
-        dificuldade: 'beginner',
-        instrucoes: 'Deite-se de bruços, apoie as mãos no chão na largura dos ombros e empurre o corpo para cima.',
-      ),
-      ExercicioModel(
-        nome: 'Agachamento',
-        tipo: 'strength',
-        musculo: 'quadriceps',
-        equipamento: 'body_only',
-        dificuldade: 'beginner',
-        instrucoes: 'Fique em pé com os pés na largura dos ombros, desça como se fosse sentar em uma cadeira.',
-      ),
-      ExercicioModel(
-        nome: 'Prancha',
-        tipo: 'strength',
-        musculo: 'abdominals',
-        equipamento: 'body_only',
-        dificuldade: 'beginner',
-        instrucoes: 'Apoie-se nos antebraços e pontas dos pés, mantendo o corpo reto.',
-      ),
-      ExercicioModel(
-        nome: 'Burpee',
-        tipo: 'cardio',
-        musculo: 'full_body',
-        equipamento: 'body_only',
-        dificuldade: 'intermediate',
-        instrucoes: 'Agache, apoie as mãos no chão, estenda as pernas para trás, faça uma flexão, volte ao agachamento e pule.',
-      ),
-      ExercicioModel(
-        nome: 'Rosca direta',
-        tipo: 'strength',
-        musculo: 'biceps',
-        equipamento: 'dumbbell',
-        dificuldade: 'beginner',
-        instrucoes: 'Segure os halteres com as palmas para frente e flexione os cotovelos levantando os pesos.',
-      ),
-    ];
-
-    if (query.isEmpty) return mockExercises;
-
-    return mockExercises
-        .where((exercise) => 
-          exercise.nome.toLowerCase().contains(query.toLowerCase()) ||
-          exercise.musculo.toLowerCase().contains(query.toLowerCase()))
-        .toList();
   }
 
   // Obter grupos musculares disponíveis
@@ -283,4 +229,3 @@ class ExerciseService {
     await _databaseService.clearOldCache();
   }
 }
-
