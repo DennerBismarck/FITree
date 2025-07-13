@@ -23,6 +23,7 @@ class _WorkoutDetailsScreenState extends State<WorkoutDetailsScreen> {
           instrucoes: "Adicione instruções aqui.",
           series: 3,
           repeticoes: 10,
+          peso: 0.0, // Adicionado valor padrão
           tempoSegundos: 60,
         ),
       );
@@ -35,44 +36,89 @@ class _WorkoutDetailsScreenState extends State<WorkoutDetailsScreen> {
     });
   }
 
-  void _editarExercicio(int index) {
+  Future<void> _editarExercicio(int index) async {
     final exercicio = widget.treino.exercicios[index];
-    TextEditingController nomeController = TextEditingController(text: exercicio.nome);
-    TextEditingController seriesController = TextEditingController(text: exercicio.series?.toString() ?? '');
-    TextEditingController descansoController = TextEditingController(text: exercicio.tempoSegundos?.toString() ?? '');
 
-    showDialog(
+    final TextEditingController nomeController = TextEditingController(text: exercicio.nome);
+    final TextEditingController tipoController = TextEditingController(text: exercicio.tipo);
+    final TextEditingController musculoController = TextEditingController(text: exercicio.musculo);
+    final TextEditingController equipamentoController = TextEditingController(text: exercicio.equipamento);
+    final TextEditingController dificuldadeController = TextEditingController(text: exercicio.dificuldade);
+    final TextEditingController instrucoesController = TextEditingController(text: exercicio.instrucoes);
+    final TextEditingController seriesController = TextEditingController(text: exercicio.series?.toString() ?? '');
+    final TextEditingController repeticoesController = TextEditingController(text: exercicio.repeticoes?.toString() ?? '');
+    final TextEditingController pesoController = TextEditingController(text: exercicio.peso?.toString() ?? '');
+    final TextEditingController tempoSegundosController = TextEditingController(text: exercicio.tempoSegundos?.toString() ?? '');
+
+    await showDialog(
       context: context,
       builder: (_) => AlertDialog(
         title: const Text("Editar Exercício"),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(controller: nomeController, decoration: const InputDecoration(labelText: "Nome")),
-            const SizedBox(height: 16),
-            TextField(controller: seriesController, decoration: const InputDecoration(labelText: "Séries")),
-            const SizedBox(height: 16),
-            TextField(controller: descansoController, decoration: const InputDecoration(labelText: "Descanso (s)")),
-          ],
+        content: SingleChildScrollView( 
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(controller: nomeController, decoration: const InputDecoration(labelText: "Nome")),
+              const SizedBox(height: 16),
+              TextField(controller: tipoController, decoration: const InputDecoration(labelText: "Tipo")),
+              const SizedBox(height: 16),
+              TextField(controller: musculoController, decoration: const InputDecoration(labelText: "Músculo")),
+              const SizedBox(height: 16),
+              TextField(controller: equipamentoController, decoration: const InputDecoration(labelText: "Equipamento")),
+              const SizedBox(height: 16),
+              TextField(controller: dificuldadeController, decoration: const InputDecoration(labelText: "Dificuldade")),
+              const SizedBox(height: 16),
+              TextField(controller: instrucoesController, decoration: const InputDecoration(labelText: "Instruções"), maxLines: 3),
+              const SizedBox(height: 16),
+              TextField(
+                controller: seriesController,
+                decoration: const InputDecoration(labelText: "Séries"),
+                keyboardType: TextInputType.number, 
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: repeticoesController,
+                decoration: const InputDecoration(labelText: "Repetições"),
+                keyboardType: TextInputType.number, 
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: pesoController,
+                decoration: const InputDecoration(labelText: "Peso (kg)"),
+                keyboardType: TextInputType.numberWithOptions(decimal: true), 
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: tempoSegundosController,
+                decoration: const InputDecoration(labelText: "Descanso (s)"),
+                keyboardType: TextInputType.number, 
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text("Cancelar"),
+          ),
+          ElevatedButton(
+            onPressed: () {
               setState(() {
                 widget.treino.exercicios[index] = ExercicioModel(
-                  nome: nomeController.text,
-                  tipo: exercicio.tipo,
-                  musculo: exercicio.musculo,
-                  equipamento: exercicio.equipamento,
-                  dificuldade: exercicio.dificuldade,
-                  instrucoes: exercicio.instrucoes,
+                  nome: nomeController.text.trim(),
+                  tipo: tipoController.text.trim(),
+                  musculo: musculoController.text.trim(),
+                  equipamento: equipamentoController.text.trim(),
+                  dificuldade: dificuldadeController.text.trim(),
+                  instrucoes: instrucoesController.text.trim(),
                   series: int.tryParse(seriesController.text),
-                  repeticoes: exercicio.repeticoes,
-                  peso: exercicio.peso,
-                  tempoSegundos: int.tryParse(descansoController.text),
+                  repeticoes: int.tryParse(repeticoesController.text),
+                  peso: double.tryParse(pesoController.text), // Usar double.tryParse
+                  tempoSegundos: int.tryParse(tempoSegundosController.text),
                 );
               });
-
               Navigator.pop(context);
             },
             child: const Text("Salvar"),
@@ -99,8 +145,15 @@ class _WorkoutDetailsScreenState extends State<WorkoutDetailsScreen> {
                   margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: ListTile(
                     title: Text(exercicio.nome, style: Theme.of(context).textTheme.titleMedium),
-                    subtitle: Text(
-                      "Séries: ${exercicio.series ?? '-'} | Descanso: ${exercicio.tempoSegundos ?? '-'}s",
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text("Tipo: ${exercicio.tipo ?? '-'} | Músculo: ${exercicio.musculo ?? '-'}"),
+                        Text("Séries: ${exercicio.series ?? '-'} | Repetições: ${exercicio.repeticoes ?? '-'}"),
+                        Text("Peso: ${exercicio.peso != null ? '${exercicio.peso}kg' : '-'} | Descanso: ${exercicio.tempoSegundos ?? '-'}s"),
+                        Text("Equipamento: ${exercicio.equipamento ?? '-'} | Dificuldade: ${exercicio.dificuldade ?? '-'}"),
+                        Text("Instruções: ${exercicio.instrucoes ?? '-'}"),
+                      ],
                     ),
                     trailing: PopupMenuButton<String>(
                       onSelected: (value) {
@@ -127,7 +180,7 @@ class _WorkoutDetailsScreenState extends State<WorkoutDetailsScreen> {
                 setState(() {
                   widget.treino.completo = true;
                 });
-                Navigator.pop(context); // volta para WorkoutScreen
+                Navigator.pop(context);
               },
               icon: const Icon(Icons.check),
               label: const Text("Marcar como concluído"),

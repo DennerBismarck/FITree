@@ -1,0 +1,15 @@
+/mnt/c/Users/alefs/OneDrive/Documentos/dev/FITree/fitree/build/linux/x64/debug/bundle/fitree
+/mnt/c/Users/alefs/OneDrive/Documentos/dev/FITree/fitree/build/linux/x64/debug/bundle/data/icudtl.dat
+/mnt/c/Users/alefs/OneDrive/Documentos/dev/FITree/fitree/build/linux/x64/debug/bundle/lib/libflutter_linux_gtk.so
+/mnt/c/Users/alefs/OneDrive/Documentos/dev/FITree/fitree/build/linux/x64/debug/bundle/data/flutter_assets/AssetManifest.bin
+/mnt/c/Users/alefs/OneDrive/Documentos/dev/FITree/fitree/build/linux/x64/debug/bundle/data/flutter_assets/AssetManifest.json
+/mnt/c/Users/alefs/OneDrive/Documentos/dev/FITree/fitree/build/linux/x64/debug/bundle/data/flutter_assets/FontManifest.json
+/mnt/c/Users/alefs/OneDrive/Documentos/dev/FITree/fitree/build/linux/x64/debug/bundle/data/flutter_assets/fonts/MaterialIcons-Regular.otf
+/mnt/c/Users/alefs/OneDrive/Documentos/dev/FITree/fitree/build/linux/x64/debug/bundle/data/flutter_assets/kernel_blob.bin
+/mnt/c/Users/alefs/OneDrive/Documentos/dev/FITree/fitree/build/linux/x64/debug/bundle/data/flutter_assets/lib/assets/images/fitree_logo.png
+/mnt/c/Users/alefs/OneDrive/Documentos/dev/FITree/fitree/build/linux/x64/debug/bundle/data/flutter_assets/lib/assets/images/login_background.png
+/mnt/c/Users/alefs/OneDrive/Documentos/dev/FITree/fitree/build/linux/x64/debug/bundle/data/flutter_assets/NativeAssetsManifest.json
+/mnt/c/Users/alefs/OneDrive/Documentos/dev/FITree/fitree/build/linux/x64/debug/bundle/data/flutter_assets/NOTICES.Z
+/mnt/c/Users/alefs/OneDrive/Documentos/dev/FITree/fitree/build/linux/x64/debug/bundle/data/flutter_assets/packages/cupertino_icons/assets/CupertinoIcons.ttf
+/mnt/c/Users/alefs/OneDrive/Documentos/dev/FITree/fitree/build/linux/x64/debug/bundle/data/flutter_assets/shaders/ink_sparkle.frag
+/mnt/c/Users/alefs/OneDrive/Documentos/dev/FITree/fitree/build/linux/x64/debug/bundle/data/flutter_assets/version.json

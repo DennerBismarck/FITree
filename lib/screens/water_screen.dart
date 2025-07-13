@@ -5,6 +5,7 @@ import '../models/agua_lembrete_model.dart';
 import 'water_history_screen.dart';
 import 'water_reminders_screen.dart';
 import 'package:uuid/uuid.dart';
+import 'package:confetti/confetti.dart'; 
 
 class WaterScreen extends StatefulWidget {
   const WaterScreen({Key? key}) : super(key: key);
@@ -13,23 +14,54 @@ class WaterScreen extends StatefulWidget {
   State<WaterScreen> createState() => _WaterScreenState();
 }
 
-class _WaterScreenState extends State<WaterScreen> {
+class _WaterScreenState extends State<WaterScreen> with SingleTickerProviderStateMixin {
   double _dailyWaterGoalMl = 2000.0;
   List<WaterLogModel> _currentDayWaterLogs = [];
   List<WaterReminderModel> _waterReminders = [];
+  bool _goalAchievedToday = false; 
+  OverlayEntry? _overlayEntry; 
 
   final _uuid = Uuid();
   DateTime _lastAccessedDate = DateTime.now();
 
+  late AnimationController _animationController;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _opacityAnimation;
+  late ConfettiController _confettiController; 
+
   @override
   void initState() {
     super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+    _scaleAnimation = Tween<double>(begin: 0.5, end: 1.2).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.elasticOut),
+    );
+    _opacityAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
+    );
+
+    _confettiController = ConfettiController(duration: const Duration(seconds: 2)); 
+
     _loadInitialData();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    _confettiController.dispose(); 
+    _overlayEntry?.remove(); 
+    super.dispose();
   }
 
   void _loadInitialData() {
     _checkForNewDay();
     _loadReminders();
+    if (_getTodayTotalWaterMl() >= _dailyWaterGoalMl) {
+      _goalAchievedToday = true;
+    }
   }
 
   void _checkForNewDay() {
@@ -40,6 +72,7 @@ class _WaterScreenState extends State<WaterScreen> {
       setState(() {
         _currentDayWaterLogs = [];
         _lastAccessedDate = today;
+        _goalAchievedToday = false; 
       });
     }
   }
@@ -63,10 +96,121 @@ class _WaterScreenState extends State<WaterScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('${amount.toStringAsFixed(0)}ml de água registrados!')),
     );
+
+    if (_getTodayTotalWaterMl() >= _dailyWaterGoalMl && !_goalAchievedToday) {
+      setState(() {
+        _goalAchievedToday = true;
+      });
+      _showCelebrationDialog();
+    }
   }
 
   double _getTodayTotalWaterMl() {
     return _currentDayWaterLogs.fold(0.0, (sum, log) => sum + log.amountMl);
+  }
+
+  void _showCelebrationDialog() {
+    _animationController.reset();
+    _animationController.forward();
+    _confettiController.play(); 
+
+    _overlayEntry = OverlayEntry(
+      builder: (context) => Stack( 
+        children: [
+          Positioned(
+            top: MediaQuery.of(context).size.height * 0.25,
+            left: MediaQuery.of(context).size.width * 0.1,
+            right: MediaQuery.of(context).size.width * 0.1,
+            child: FadeTransition(
+              opacity: _opacityAnimation,
+              child: ScaleTransition(
+                scale: _scaleAnimation,
+                child: Material(
+                  color: Colors.transparent,
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.green.shade700,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.3),
+                            blurRadius: 15,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: const [
+                          Icon(
+                            Icons.emoji_events, 
+                            color: Colors.yellowAccent,
+                            size: 80,
+                          ),
+                          SizedBox(height: 15),
+                          Text(
+                            'Parabéns!',
+                            style: TextStyle(
+                              fontSize: 32,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              shadows: [
+                                Shadow(
+                                  blurRadius: 5.0,
+                                  color: Colors.black54,
+                                  offset: Offset(2.0, 2.0),
+                                ),
+                              ],
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          SizedBox(height: 10),
+                          Text(
+                            'Você atingiu sua meta diária de água!',
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Colors.white70,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Align(
+            alignment: Alignment.topCenter,
+            child: ConfettiWidget(
+              confettiController: _confettiController,
+              blastDirectionality: BlastDirectionality.explosive, 
+              shouldLoop: false, 
+              colors: const [
+                Colors.green,
+                Colors.blue,
+                Colors.pink,
+                Colors.orange,
+                Colors.purple,
+              ], 
+              createParticlePath: (size) => Path() 
+                ..addRect(Rect.fromLTWH(0, 0, size.width, size.height)),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    Overlay.of(context).insert(_overlayEntry!);
+
+    Future.delayed(const Duration(seconds: 3), () {
+      _overlayEntry?.remove();
+      _overlayEntry = null;
+      _confettiController.stop(); 
+    });
   }
 
   Future<void> _showAddWaterDialog() async {
@@ -129,6 +273,12 @@ class _WaterScreenState extends State<WaterScreen> {
                 if (goalController.text.isNotEmpty) {
                   setState(() {
                     _dailyWaterGoalMl = double.parse(goalController.text);
+                    if (_getTodayTotalWaterMl() >= _dailyWaterGoalMl && !_goalAchievedToday) {
+                      _goalAchievedToday = true;
+                      _showCelebrationDialog();
+                    } else if (_getTodayTotalWaterMl() < _dailyWaterGoalMl && _goalAchievedToday) {
+                      _goalAchievedToday = false; 
+                    }
                   });
                   Navigator.of(context).pop();
                 }
@@ -295,6 +445,12 @@ class _WaterScreenState extends State<WaterScreen> {
                           setState(() {
                             _currentDayWaterLogs = updatedLogs;
                             _currentDayWaterLogs.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+                            if (_getTodayTotalWaterMl() >= _dailyWaterGoalMl && !_goalAchievedToday) {
+                              _goalAchievedToday = true;
+                              _showCelebrationDialog();
+                            } else if (_getTodayTotalWaterMl() < _dailyWaterGoalMl && _goalAchievedToday) {
+                              _goalAchievedToday = false;
+                            }
                           });
                         }
                       },
@@ -341,7 +497,7 @@ class _WaterScreenState extends State<WaterScreen> {
                                             padding: const EdgeInsets.symmetric(vertical: 4.0),
                                             child: Text(
                                               '${DateFormat('HH:mm').format(log.timestamp)}: ${log.amountMl.toStringAsFixed(0)} ml',
-                                              style: const TextStyle(fontSize: 15, color: Colors.black87, fontWeight: FontWeight.w600), 
+                                              style: const TextStyle(fontSize: 15, color: Colors.black87, fontWeight: FontWeight.w600),
                                               overflow: TextOverflow.ellipsis,
                                             ),
                                           );
@@ -420,7 +576,7 @@ class _WaterScreenState extends State<WaterScreen> {
                                             padding: const EdgeInsets.symmetric(vertical: 4.0),
                                             child: Text(
                                               '$formattedTime',
-                                              style: const TextStyle(fontSize: 15, color: Colors.black87, fontWeight: FontWeight.w600), 
+                                              style: const TextStyle(fontSize: 15, color: Colors.black87, fontWeight: FontWeight.w600),
                                               overflow: TextOverflow.ellipsis,
                                             ),
                                           );

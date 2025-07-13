@@ -18,6 +18,10 @@ class DataService {
 
   // Funções de login
   Future<bool> login(String email, String senha) async {
+    if (email.isEmpty || senha.isEmpty) {
+      return false; 
+    }
+
     final usuario = await _databaseService.getUsuarioByEmailAndPassword(email, senha);
     if (usuario != null) {
       _usuarioId = usuario['id'];
@@ -27,9 +31,18 @@ class DataService {
   }
 
   Future<int> registrarUsuario(String nome, String email, String senha) async {
+    if (nome.isEmpty || email.isEmpty || senha.isEmpty) {
+      throw Exception('Name, email and password cannot be empty.');
+    }
+
+    final bool emailValid = RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+").hasMatch(email);
+    if (!emailValid) {
+      throw Exception('Invalid email format.');
+    }
+
     final usuarioExistente = await _databaseService.getUsuarioByEmail(email);
     if (usuarioExistente != null) {
-      throw Exception('Usuário já existe');
+      throw Exception('User already exists for email: $email');
     }
     final id = await _databaseService.insertUsuario({
       'nome': nome,
@@ -73,7 +86,9 @@ class DataService {
   String traduzirGrupoMuscular(String musculo) =>
       _exerciseService.translateMuscleGroup(musculo);
 
-  Future<void> inicializarBanco() async => await _databaseService.database;
+  Future<void> inicializarBanco() async {
+    await _databaseService.database;
+  }
 
   Future<int> salvarRecurso<T>({
     required List<T> itens,

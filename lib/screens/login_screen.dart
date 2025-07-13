@@ -2,8 +2,23 @@ import 'package:flutter/material.dart';
 import '../routes/app_routes.dart';
 import '../controllers/data_service.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,6 +53,7 @@ class LoginScreen extends StatelessWidget {
 
               // CAMPO DE E-MAIL
               TextField(
+                controller: _emailController, 
                 style: TextStyle(color: theme.colorScheme.primary),
                 decoration: InputDecoration(
                   hintText: "Email",
@@ -55,6 +71,7 @@ class LoginScreen extends StatelessWidget {
 
               // CAMPO DE SENHA
               TextField(
+                controller: _passwordController, 
                 obscureText: true,
                 style: TextStyle(color: theme.colorScheme.primary),
                 decoration: InputDecoration(
@@ -76,26 +93,23 @@ class LoginScreen extends StatelessWidget {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () async {
-                    FocusScope.of(context).unfocus();
-                    final emailController = TextEditingController();
-                    final passwordController = TextEditingController();
-
+                    FocusScope.of(context).unfocus();                  
                     showDialog(
                       context: context,
                       barrierDismissible: false,
-                      builder: (context) => Center(child: CircularProgressIndicator()),
+                      builder: (context) => const Center(child: CircularProgressIndicator()),
                     );
 
                     final success = await dataService.login(
-                      emailController.text.trim(),
-                      passwordController.text,
+                      _emailController.text.trim(), 
+                      _passwordController.text,     
                     );
 
-                    Navigator.of(context).pop(); // Remove loading dialog
+                    Navigator.of(context).pop(); 
 
                     if (!success) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Invalid email or password')),
+                        const SnackBar(content: Text('Invalid email or password')),
                       );
                       return;
                     }

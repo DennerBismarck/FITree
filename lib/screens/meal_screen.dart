@@ -135,6 +135,43 @@ class _MealScreenState extends State<MealScreen> {
     }
   }
 
+  Future<void> _editarRefeicao(int index) async {
+    final refeicaoParaEditar = _filteredRefeicoes[index];
+    final TextEditingController _refeicaoController = TextEditingController(text: refeicaoParaEditar.refeicao);
+
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Editar Refeição'),
+          content: TextField(
+            controller: _refeicaoController,
+            decoration: const InputDecoration(labelText: 'Nome da Refeição'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  final originalIndex = _allRefeicoes.indexOf(refeicaoParaEditar);
+                  if (originalIndex != -1) {
+                    _allRefeicoes[originalIndex].refeicao = _refeicaoController.text.trim();
+                  }
+                  _filterMeals(); 
+                });
+                Navigator.of(context).pop();
+              },
+              child: const Text('Salvar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> _selectFilterDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -179,9 +216,9 @@ class _MealScreenState extends State<MealScreen> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Planejamento Alimentar'), 
+            const Text('Planejamento Alimentar'),
             Text(
-              DateFormat('dd/MM/yyyy').format(_selectedFilterDate), 
+              DateFormat('dd/MM/yyyy').format(_selectedFilterDate),
               style: Theme.of(context).textTheme.titleSmall?.copyWith(color: Colors.white70),
             ),
           ],
@@ -246,19 +283,26 @@ class _MealScreenState extends State<MealScreen> {
                         const Icon(Icons.arrow_forward),
                         PopupMenuButton<String>(
                           onSelected: (value) {
-                            if (value == 'remover') {
+                            if (value == 'editar') { // Novo caso para editar
+                              _editarRefeicao(index);
+                            } else if (value == 'remover') {
                               _removerRefeicao(index);
                             } else if (value == 'desmarcar_concluido') {
                               _toggleCompleto(index);
                             }
                           },
                           itemBuilder: (context) => [
-                            const PopupMenuItem(
+                            // Nova opção de "Editar refeição" como a primeira
+                            const PopupMenuItem<String>(
+                              value: 'editar',
+                              child: Text('Editar refeição'),
+                            ),
+                            const PopupMenuItem<String>(
                               value: 'remover',
                               child: Text('Remover refeição'),
                             ),
                             if (refeicao.completo)
-                              const PopupMenuItem(
+                              const PopupMenuItem<String>(
                                 value: 'desmarcar_concluido',
                                 child: Text('Desmarcar concluído'),
                               ),

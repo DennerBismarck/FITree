@@ -1,8 +1,8 @@
 // screens/workout_screen.dart
 import 'package:flutter/material.dart';
-import '../models/treino_model.dart'; 
+import '../models/treino_model.dart';
 import 'workout_details_screen.dart';
-import 'package:intl/intl.dart'; 
+import 'package:intl/intl.dart';
 
 class WorkoutScreen extends StatefulWidget {
   @override
@@ -14,7 +14,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
     TreinoModel(
       titulo: "Treino A - Peito",
       completo: true,
-      data: '2025-07-07', 
+      data: '2025-07-07',
       exercicios: [
         ExercicioModel(
           nome: "Supino Reto",
@@ -180,14 +180,14 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
     ),
   ];
 
-  DateTime _selectedFilterDate = DateTime.now(); 
+  DateTime _selectedFilterDate = DateTime.now();
   List<TreinoModel> _filteredTreinos = [];
 
   @override
   void initState() {
     super.initState();
     _selectedFilterDate = DateTime.now();
-    _filterTreinos(); 
+    _filterTreinos();
   }
 
   void _filterTreinos() {
@@ -202,7 +202,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
   Future<void> _adicionarTreino() async {
     final DateTime? pickedDate = await showDatePicker(
       context: context,
-      initialDate: _selectedFilterDate, 
+      initialDate: _selectedFilterDate,
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
       helpText: 'Selecione a Data do Novo Treino',
@@ -216,26 +216,64 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
         _allTreinos.add(TreinoModel(
           titulo: 'Novo Treino',
           completo: false,
-          data: novaData, 
+          data: novaData,
           exercicios: [],
         ));
-        _filterTreinos(); 
+        _filterTreinos();
       });
     }
   }
+
+  Future<void> _editarTreino(int index) async {
+    final treinoParaEditar = _filteredTreinos[index];
+    final TextEditingController _tituloController = TextEditingController(text: treinoParaEditar.titulo);
+
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Editar Treino'),
+          content: TextField(
+            controller: _tituloController,
+            decoration: const InputDecoration(labelText: 'Título do Treino'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  final originalIndex = _allTreinos.indexOf(treinoParaEditar);
+                  if (originalIndex != -1) {
+                    _allTreinos[originalIndex].titulo = _tituloController.text.trim();
+                  }
+                  _filterTreinos(); 
+                });
+                Navigator.of(context).pop();
+              },
+              child: const Text('Salvar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
 
   void _removerTreino(int index) {
     setState(() {
       final treinoRemovido = _filteredTreinos[index];
       _allTreinos.removeWhere((t) => t == treinoRemovido);
-      _filterTreinos(); 
+      _filterTreinos();
     });
   }
 
   Future<void> _selectFilterDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: _selectedFilterDate, 
+      initialDate: _selectedFilterDate,
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
       helpText: 'Selecionar Data de Visualização',
@@ -245,7 +283,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
     if (picked != null && picked != _selectedFilterDate) {
       setState(() {
         _selectedFilterDate = picked;
-        _filterTreinos(); 
+        _filterTreinos();
       });
     }
   }
@@ -268,9 +306,9 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Rotina de Treinos'), 
+            const Text('Rotina de Treinos'),
             Text(
-              DateFormat('dd/MM/yyyy').format(_selectedFilterDate), 
+              DateFormat('dd/MM/yyyy').format(_selectedFilterDate),
               style: Theme.of(context).textTheme.titleSmall?.copyWith(color: Colors.white70),
             ),
           ],
@@ -282,7 +320,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
             onPressed: () => _selectFilterDate(context),
           ),
           IconButton(
-            icon: const Icon(Icons.refresh), 
+            icon: const Icon(Icons.refresh),
             tooltip: 'Ver treinos de hoje',
             onPressed: () {
               setState(() {
@@ -304,7 +342,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                   const Icon(Icons.info_outline, size: 50, color: Colors.grey),
                   const SizedBox(height: 10),
                   const Text(
-                    'Nenhum treino informado!', 
+                    'Nenhum treino informado!',
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 18, color: Colors.grey),
                   ),
@@ -325,7 +363,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                   color: treino.completo ? Colors.green[100] : Colors.grey[200],
                   margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: ListTile(
-                    title: Text('${treino.titulo} - $formattedDate'), 
+                    title: Text('${treino.titulo} - $formattedDate'),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -335,24 +373,25 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                         const Icon(Icons.arrow_forward),
                         PopupMenuButton<String>(
                           onSelected: (value) {
-                            if (value == 'remover') {
+                            if (value == 'editar') {
+                              _editarTreino(index);
+                            } else if (value == 'remover') {
                               _removerTreino(index);
                             } else if (value == 'toggle_concluido') {
                               _toggleCompleto(index);
                             }
                           },
                           itemBuilder: (context) => [
-                            const PopupMenuItem(
+                            const PopupMenuItem<String>(
+                              value: 'editar',
+                              child: Text('Editar treino'),
+                            ),
+                            const PopupMenuItem<String>(
                               value: 'remover',
                               child: Text('Remover treino'),
                             ),
-                            if (!treino.completo)
-                              const PopupMenuItem(
-                                value: 'toggle_concluido',
-                                child: Text('Marcar como Concluído'),
-                              ),
                             if (treino.completo)
-                              const PopupMenuItem(
+                              const PopupMenuItem<String>(
                                 value: 'toggle_concluido',
                                 child: Text('Desmarcar concluído'),
                               ),
@@ -368,7 +407,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                         ),
                       );
                       setState(() {
-                        _filterTreinos(); 
+                        _filterTreinos();
                       });
                     },
                   ),

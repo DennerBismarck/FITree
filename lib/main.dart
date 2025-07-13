@@ -1,26 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'theme/theme.dart';
 import 'theme/theme_notifier.dart';
-import 'screens/login_screen.dart'; 
+import 'screens/login_screen.dart';
 import 'routes/app_routes.dart';
-import 'controllers/data_service.dart';
+import 'controllers/data_service.dart'; 
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Inicializar o banco de dados
-  
+
+  sqfliteFfiInit();
+  databaseFactory = databaseFactoryFfi;
+
   try {
     await dataService.inicializarBanco();
     print('Banco inicializado com sucesso!');
   } catch (e) {
     print('Erro ao inicializar banco: $e');
   }
-  
+
   runApp(
     ChangeNotifierProvider(
-      create: (_) => ThemeNotifier(false), 
+      create: (_) => ThemeNotifier(false),
       child: const MyApp(),
     ),
   );

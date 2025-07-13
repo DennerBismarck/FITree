@@ -2,8 +2,25 @@ import 'package:flutter/material.dart';
 import '../routes/app_routes.dart';
 import '../controllers/data_service.dart';
 
-class SignUpScreen extends StatelessWidget {
+class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
+
+  @override
+  State<SignUpScreen> createState() => _SignUpScreenState();
+}
+
+class _SignUpScreenState extends State<SignUpScreen> {
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -11,20 +28,24 @@ class SignUpScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: AppBar(
+        title: const Text('Sign up'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        foregroundColor: theme.colorScheme.primary,
+      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 32),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // LOGO
               Image.asset(
                 'lib/assets/images/fitree_logo.png',
-                height: 120,
+                height: 100,
               ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 30),
 
-              // TÍTULO
               Text(
                 "Create your FiTree account",
                 textAlign: TextAlign.center,
@@ -33,16 +54,15 @@ class SignUpScreen extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-
               const SizedBox(height: 32),
 
-              // NOME
+              // CAMPO DE NOME
               TextField(
+                controller: _nameController, 
                 style: TextStyle(color: theme.colorScheme.primary),
                 decoration: InputDecoration(
                   hintText: "Full Name",
-                  hintStyle: TextStyle(
-                      color: theme.colorScheme.primary.withOpacity(0.5)),
+                  hintStyle: TextStyle(color: theme.colorScheme.primary.withOpacity(0.5)),
                   filled: true,
                   fillColor: theme.inputDecorationTheme.fillColor,
                   border: OutlineInputBorder(
@@ -51,16 +71,15 @@ class SignUpScreen extends StatelessWidget {
                   ),
                 ),
               ),
-
               const SizedBox(height: 16),
 
-              // EMAIL
+              // CAMPO DE E-MAIL
               TextField(
+                controller: _emailController,
                 style: TextStyle(color: theme.colorScheme.primary),
                 decoration: InputDecoration(
                   hintText: "Email",
-                  hintStyle: TextStyle(
-                      color: theme.colorScheme.primary.withOpacity(0.5)),
+                  hintStyle: TextStyle(color: theme.colorScheme.primary.withOpacity(0.5)),
                   filled: true,
                   fillColor: theme.inputDecorationTheme.fillColor,
                   border: OutlineInputBorder(
@@ -69,17 +88,16 @@ class SignUpScreen extends StatelessWidget {
                   ),
                 ),
               ),
-
               const SizedBox(height: 16),
 
-              // SENHA
+              // CAMPO DE SENHA
               TextField(
+                controller: _passwordController,
                 obscureText: true,
                 style: TextStyle(color: theme.colorScheme.primary),
                 decoration: InputDecoration(
                   hintText: "Password",
-                  hintStyle: TextStyle(
-                      color: theme.colorScheme.primary.withOpacity(0.5)),
+                  hintStyle: TextStyle(color: theme.colorScheme.primary.withOpacity(0.5)),
                   filled: true,
                   fillColor: theme.inputDecorationTheme.fillColor,
                   border: OutlineInputBorder(
@@ -91,42 +109,37 @@ class SignUpScreen extends StatelessWidget {
 
               const SizedBox(height: 24),
 
-              // BOTÃO CADASTRAR
+              // BOTÃO DE CADASTRO
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () async {
                     FocusScope.of(context).unfocus();
-                    final nameController = TextEditingController();
-                    final emailController = TextEditingController();
-                    final passwordController = TextEditingController();
+
 
                     showDialog(
                       context: context,
                       barrierDismissible: false,
-                      builder: (context) =>
-                          const Center(child: CircularProgressIndicator()),
+                      builder: (context) => const Center(child: CircularProgressIndicator()),
                     );
 
                     try {
-                      await dataService.registrarUsuario(
-                        nameController.text.trim(),
-                        emailController.text.trim(),
-                        passwordController.text.trim(),
+                      final id = await dataService.registrarUsuario(
+                        _nameController.text.trim(),
+                        _emailController.text.trim(),
+                        _passwordController.text,
                       );
-                      Navigator.of(context).pop(); // Remove loading
+                      Navigator.of(context).pop(); 
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content: Text('Registration successful!')),
+                        const SnackBar(content: Text('Account created successfully!')),
                       );
-                    } on Exception catch (e) {
-                      Navigator.of(context).pop(); // Remove loading
+                      Navigator.pushReplacementNamed(context, AppRoutes.home); 
+                    } catch (e) {
+                      Navigator.of(context).pop(); 
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(e.toString())),
+                        SnackBar(content: Text('Error creating account: ${e.toString().replaceFirst('Exception: ', '')}')),
                       );
-                      return;
                     }
-                    Navigator.pushReplacementNamed(context, AppRoutes.home);
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: theme.colorScheme.secondary,
@@ -137,7 +150,7 @@ class SignUpScreen extends StatelessWidget {
                     ),
                   ),
                   child: const Text(
-                    "Sign Up",
+                    "Sign up",
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),
@@ -145,13 +158,13 @@ class SignUpScreen extends StatelessWidget {
 
               const SizedBox(height: 16),
 
-              // VOLTAR PARA LOGIN
               TextButton(
                 onPressed: () {
-                  Navigator.pop(context);
+                  FocusScope.of(context).unfocus();
+                  Navigator.pop(context); 
                 },
                 child: Text(
-                  "Already have an account? Log in",
+                  "Already have an account? Sign in",
                   style: TextStyle(color: theme.colorScheme.secondary),
                 ),
               ),
