@@ -8,6 +8,8 @@ import '../screens/meal_screen.dart';
 import '../screens/water_screen.dart';
 import '../screens/sleep_screen.dart';
 import '../screens/report_screen.dart';
+import '../screens/food_search_screen.dart';
+import '../screens/exercise_search_screen.dart';
 
 class AppRoutes {
   static const login = '/login';
@@ -19,6 +21,8 @@ class AppRoutes {
   static const water = '/water';
   static const sleep = '/sleep';
   static const report = '/report';
+  static const foodSearch = '/food-search';
+  static const exerciseSearch = '/exercise-search';
 
   static Map<String, WidgetBuilder> routes = {
     login: (_) => const LoginScreen(),

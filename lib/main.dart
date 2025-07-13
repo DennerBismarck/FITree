@@ -4,8 +4,14 @@ import 'theme/theme.dart';
 import 'theme/theme_notifier.dart';
 import 'screens/login_screen.dart'; 
 import 'routes/app_routes.dart';
+import 'controllers/data_service.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Inicializar o banco de dados
+  await dataService.inicializarBanco();
+  
   runApp(
     ChangeNotifierProvider(
       create: (_) => ThemeNotifier(false), 
@@ -22,7 +28,7 @@ class MyApp extends StatelessWidget {
     final themeNotifier = Provider.of<ThemeNotifier>(context);
 
     return MaterialApp(
-      title: 'App',
+      title: 'FITree',
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: themeNotifier.isDarkMode ? ThemeMode.dark : ThemeMode.light,
@@ -32,3 +38,4 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+

@@ -1,4 +1,3 @@
-// screens/workout_details_screen.dart
 import 'package:flutter/material.dart';
 import '../models/treino_model.dart';
 
@@ -14,11 +13,19 @@ class WorkoutDetailsScreen extends StatefulWidget {
 class _WorkoutDetailsScreenState extends State<WorkoutDetailsScreen> {
   void _adicionarExercicio() {
     setState(() {
-      widget.treino.exercicios.add({
-        "nome": "Novo Exercício",
-        "series": "3x10",
-        "descanso": "60s",
-      });
+      widget.treino.exercicios.add(
+        ExercicioModel(
+          nome: "Novo Exercício",
+          tipo: "Força",
+          musculo: "Geral",
+          equipamento: "Livre",
+          dificuldade: "Fácil",
+          instrucoes: "Adicione instruções aqui.",
+          series: 3,
+          repeticoes: 10,
+          tempoSegundos: 60,
+        ),
+      );
     });
   }
 
@@ -30,9 +37,9 @@ class _WorkoutDetailsScreenState extends State<WorkoutDetailsScreen> {
 
   void _editarExercicio(int index) {
     final exercicio = widget.treino.exercicios[index];
-    TextEditingController nomeController = TextEditingController(text: exercicio['nome']);
-    TextEditingController seriesController = TextEditingController(text: exercicio['series']);
-    TextEditingController descansoController = TextEditingController(text: exercicio['descanso']);
+    TextEditingController nomeController = TextEditingController(text: exercicio.nome);
+    TextEditingController seriesController = TextEditingController(text: exercicio.series?.toString() ?? '');
+    TextEditingController descansoController = TextEditingController(text: exercicio.tempoSegundos?.toString() ?? '');
 
     showDialog(
       context: context,
@@ -40,33 +47,32 @@ class _WorkoutDetailsScreenState extends State<WorkoutDetailsScreen> {
         title: const Text("Editar Exercício"),
         content: Column(
           mainAxisSize: MainAxisSize.min,
-            children: [
-            TextField(
-              controller: nomeController,
-              decoration: const InputDecoration(labelText: "Nome"),
-            ),
+          children: [
+            TextField(controller: nomeController, decoration: const InputDecoration(labelText: "Nome")),
             const SizedBox(height: 16),
-            TextField(
-              controller: seriesController,
-              decoration: const InputDecoration(labelText: "Séries"),
-            ),
+            TextField(controller: seriesController, decoration: const InputDecoration(labelText: "Séries")),
             const SizedBox(height: 16),
-            TextField(
-              controller: descansoController,
-              decoration: const InputDecoration(labelText: "Descanso"),
-            ),
+            TextField(controller: descansoController, decoration: const InputDecoration(labelText: "Descanso (s)")),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () {
               setState(() {
-                widget.treino.exercicios[index] = {
-                  "nome": nomeController.text,
-                  "series": seriesController.text,
-                  "descanso": descansoController.text,
-                };
+                widget.treino.exercicios[index] = ExercicioModel(
+                  nome: nomeController.text,
+                  tipo: exercicio.tipo,
+                  musculo: exercicio.musculo,
+                  equipamento: exercicio.equipamento,
+                  dificuldade: exercicio.dificuldade,
+                  instrucoes: exercicio.instrucoes,
+                  series: int.tryParse(seriesController.text),
+                  repeticoes: exercicio.repeticoes,
+                  peso: exercicio.peso,
+                  tempoSegundos: int.tryParse(descansoController.text),
+                );
               });
+
               Navigator.pop(context);
             },
             child: const Text("Salvar"),
@@ -78,21 +84,23 @@ class _WorkoutDetailsScreenState extends State<WorkoutDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final exercicios = widget.treino.exercicios;
+
     return Scaffold(
       appBar: AppBar(title: Text(widget.treino.titulo)),
       body: Column(
         children: [
           Expanded(
             child: ListView.builder(
-              itemCount: widget.treino.exercicios.length,
+              itemCount: exercicios.length,
               itemBuilder: (context, index) {
-                final exercicio = widget.treino.exercicios[index];
+                final exercicio = exercicios[index];
                 return Card(
                   margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: ListTile(
-                    title: Text(exercicio['nome'] ?? '', style: Theme.of(context).textTheme.titleMedium),
+                    title: Text(exercicio.nome, style: Theme.of(context).textTheme.titleMedium),
                     subtitle: Text(
-                      "Séries: ${exercicio['series'] ?? ''} | Descanso: ${exercicio['descanso'] ?? ''}",
+                      "Séries: ${exercicio.series ?? '-'} | Descanso: ${exercicio.tempoSegundos ?? '-'}s",
                     ),
                     trailing: PopupMenuButton<String>(
                       onSelected: (value) {
@@ -132,7 +140,7 @@ class _WorkoutDetailsScreenState extends State<WorkoutDetailsScreen> {
         ],
       ),
       floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 80.0), 
+        padding: const EdgeInsets.only(bottom: 80.0),
         child: FloatingActionButton(
           onPressed: _adicionarExercicio,
           child: const Icon(Icons.add),
