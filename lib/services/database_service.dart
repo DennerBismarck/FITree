@@ -19,7 +19,7 @@ class DatabaseService {
   Future<Database> _initDatabase() async {
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
     String path = join(documentsDirectory.path, 'fitree.db');
-    
+
     return await openDatabase(
       path,
       version: 1,
@@ -146,7 +146,7 @@ class DatabaseService {
       FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
     );
     ''');
-
+  }
 
   // Métodos para usuários
   Future<int> insertUsuario(Map<String, dynamic> usuario) async {
@@ -156,7 +156,8 @@ class DatabaseService {
 
   Future<Map<String, dynamic>?> getUsuarioByEmail(String email) async {
     final db = await database;
-    final result = await db.query('usuarios', where: 'email = ?', whereArgs: [email]);
+    final result =
+        await db.query('usuarios', where: 'email = ?', whereArgs: [email]);
     return result.isNotEmpty ? result.first : null;
   }
 
@@ -166,7 +167,8 @@ class DatabaseService {
     return result.isNotEmpty ? result.first : null;
   }
 
-  Future<Map<String,dynamic>?>getUsuarioByEmailAndPassword(String email, String senha) async {
+  Future<Map<String, dynamic>?> getUsuarioByEmailAndPassword(
+      String email, String senha) async {
     final db = await database;
     final result = await db.query(
       'usuarios',
@@ -191,18 +193,21 @@ class DatabaseService {
   Future<List<Map<String, dynamic>>> getAlimentos({int? usuarioId}) async {
     final db = await database;
     if (usuarioId != null) {
-      return await db.query('alimentos', where: 'usuario_id = ?', whereArgs: [usuarioId], orderBy: 'nome ASC');
+      return await db.query('alimentos',
+          where: 'usuario_id = ?', whereArgs: [usuarioId], orderBy: 'nome ASC');
     }
     return await db.query('alimentos', orderBy: 'nome ASC');
   }
 
   Future<Map<String, dynamic>?> getAlimentoById(int id) async {
     final db = await database;
-    final result = await db.query('alimentos', where: 'id = ?', whereArgs: [id]);
+    final result =
+        await db.query('alimentos', where: 'id = ?', whereArgs: [id]);
     return result.isNotEmpty ? result.first : null;
   }
 
-  Future<List<Map<String, dynamic>>> searchAlimentos(String query, {int? usuarioId}) async {
+  Future<List<Map<String, dynamic>>> searchAlimentos(String query,
+      {int? usuarioId}) async {
     final db = await database;
     if (usuarioId != null) {
       return await db.query(
@@ -220,7 +225,8 @@ class DatabaseService {
     );
   }
 
-  Future<List<Map<String, dynamic>>> getRefeicoesByDataUsuario(String data, int usuarioId) async {
+  Future<List<Map<String, dynamic>>> getRefeicoesByDataUsuario(
+      String data, int usuarioId) async {
     final db = await database;
     return await db.query(
       'refeicoes_usuario',
@@ -240,12 +246,14 @@ class DatabaseService {
   Future<List<Map<String, dynamic>>> getExercicios({int? usuarioId}) async {
     final db = await database;
     if (usuarioId != null) {
-      return await db.query('exercicios', where: 'usuario_id = ?', whereArgs: [usuarioId], orderBy: 'nome ASC');
+      return await db.query('exercicios',
+          where: 'usuario_id = ?', whereArgs: [usuarioId], orderBy: 'nome ASC');
     }
     return await db.query('exercicios', orderBy: 'nome ASC');
   }
 
-  Future<List<Map<String, dynamic>>> getExerciciosByMusculo(String musculo, {int? usuarioId}) async {
+  Future<List<Map<String, dynamic>>> getExerciciosByMusculo(String musculo,
+      {int? usuarioId}) async {
     final db = await database;
     if (usuarioId != null) {
       return await db.query(
@@ -263,7 +271,8 @@ class DatabaseService {
     );
   }
 
-  Future<List<Map<String, dynamic>>> getTreinosByDataUsuario(String data, int usuarioId) async {
+  Future<List<Map<String, dynamic>>> getTreinosByDataUsuario(
+      String data, int usuarioId) async {
     final db = await database;
     return await db.query(
       'treinos_usuario',
@@ -272,7 +281,9 @@ class DatabaseService {
       orderBy: 'created_at ASC',
     );
   }
-  Future<List<Map<String, dynamic>>> searchExercicios(String query, {int? usuarioId}) async {
+
+  Future<List<Map<String, dynamic>>> searchExercicios(String query,
+      {int? usuarioId}) async {
     final db = await database;
     if (usuarioId != null) {
       return await db.query(
@@ -297,7 +308,8 @@ class DatabaseService {
     return await db.insert('refeicoes_usuario', refeicao);
   }
 
-  Future<List<Map<String, dynamic>>> getRefeicoesByData(String data, {int? usuarioId}) async {
+  Future<List<Map<String, dynamic>>> getRefeicoesByData(String data,
+      {int? usuarioId}) async {
     final db = await database;
     if (usuarioId != null) {
       return await db.query(
@@ -326,12 +338,14 @@ class DatabaseService {
   }
 
   // Métodos para alimentos nas refeições
-  Future<int> insertAlimentoRefeicao(Map<String, dynamic> alimentoRefeicao) async {
+  Future<int> insertAlimentoRefeicao(
+      Map<String, dynamic> alimentoRefeicao) async {
     final db = await database;
     return await db.insert('alimentos_refeicao', alimentoRefeicao);
   }
 
-  Future<List<Map<String, dynamic>>> getAlimentosRefeicao(int refeicaoId) async {
+  Future<List<Map<String, dynamic>>> getAlimentosRefeicao(
+      int refeicaoId) async {
     final db = await database;
     return await db.rawQuery('''
       SELECT ar.*, a.nome, a.calorias, a.carboidratos, a.proteinas, a.gorduras
@@ -348,7 +362,8 @@ class DatabaseService {
     return await db.insert('treinos_usuario', treino);
   }
 
-  Future<List<Map<String, dynamic>>> getTreinosByData(String data, {int? usuarioId}) async {
+  Future<List<Map<String, dynamic>>> getTreinosByData(String data,
+      {int? usuarioId}) async {
     final db = await database;
     if (usuarioId != null) {
       return await db.query(
@@ -377,7 +392,8 @@ class DatabaseService {
   }
 
   // Métodos para exercícios nos treinos
-  Future<int> insertExercicioTreino(Map<String, dynamic> exercicioTreino) async {
+  Future<int> insertExercicioTreino(
+      Map<String, dynamic> exercicioTreino) async {
     final db = await database;
     return await db.insert('exercicios_treino', exercicioTreino);
   }
@@ -392,13 +408,35 @@ class DatabaseService {
     ''', [treinoId]);
   }
 
+  updateTreinoUsuario(Map<String, dynamic> treinoData) async {
+    final db = await database;
+    await db.update(
+      'treinos_usuario',
+      treinoData,
+      where: 'id = ?',
+      whereArgs: [treinoData['id']],
+    );
+  }
+
+  Future<void> deleteExerciciosTreino(int treinoId) async {
+    final db = await database;
+    await db.delete(
+      'exercicios_treino',
+      where: 'treino_id = ?',
+      whereArgs: [treinoId],
+    );
+}
+
   // Método para limpar cache antigo (opcional)
   Future<void> clearOldCache() async {
     final db = await database;
-    final oneWeekAgo = DateTime.now().subtract(const Duration(days: 7)).toIso8601String();
-    
-    await db.delete('alimentos', where: 'created_at < ?', whereArgs: [oneWeekAgo]);
-    await db.delete('exercicios', where: 'created_at < ?', whereArgs: [oneWeekAgo]);
+    final oneWeekAgo =
+        DateTime.now().subtract(const Duration(days: 7)).toIso8601String();
+
+    await db
+        .delete('alimentos', where: 'created_at < ?', whereArgs: [oneWeekAgo]);
+    await db
+        .delete('exercicios', where: 'created_at < ?', whereArgs: [oneWeekAgo]);
   }
 
   // Método para fechar o banco
@@ -406,5 +444,4 @@ class DatabaseService {
     final db = await database;
     await db.close();
   }
-}
 }

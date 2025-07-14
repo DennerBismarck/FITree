@@ -48,41 +48,25 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
     );
 
     if (pickedDate != null) {
-      try {
-        final dataService = Provider.of<DataService>(context, listen: false);
-        final novaData = DateFormat('yyyy-MM-dd').format(pickedDate);
-        
-        final treinoId = await dataService.salvarTreino(
-          nome: 'Novo Treino',
-          data: novaData,
-          exercicios: [],
-        );
+      setState(() => _selectedFilterDate = pickedDate);
 
-        setState(() {
-          _selectedFilterDate = pickedDate;
-        });
+      final novaData = DateFormat('yyyy-MM-dd').format(pickedDate);
+      final novoTreino = TreinoModel(
+        titulo: 'Novo Treino',
+        completo: false,
+        data: novaData,
+        exercicios: [],
+      );
+
+      final result = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => WorkoutDetailsScreen(treino: novoTreino),
+        ),
+      );
+
+      if (result == true) {
         await _loadTreinos();
-        
-        // Abre a tela de detalhes para edição
-        final novoTreino = TreinoModel(
-          titulo: 'Novo Treino',
-          completo: false,
-          data: novaData,
-          exercicios: [],
-        );
-        
-        await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => WorkoutDetailsScreen(treino: novoTreino),
-          ),
-        );
-        
-        await _loadTreinos();
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao criar treino: $e')),
-        );
       }
     }
   }
@@ -94,7 +78,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
     );
-    
+
     if (picked != null && picked != _selectedFilterDate) {
       setState(() => _selectedFilterDate = picked);
       await _loadTreinos();

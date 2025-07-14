@@ -179,24 +179,29 @@ class DataService {
   }
 
   Future<int> salvarTreino({
-    required String nome,
-    required String data,
-    required List<ExercicioModel> exercicios,
-    int? duracaoMinutos,
-  }) async {
-    final treinoId = await _databaseService.insertTreinoUsuario({
-      'nome': nome,
-      'data': data,
-      'completo': 0,
-      'duracao_minutos': duracaoMinutos,
-      'usuario_id': _usuarioId,
-    });
+  required String nome,
+  required String data,
+  required List<ExercicioModel> exercicios,
+  int? duracaoMinutos,
+}) async {
+  final treinoId = await _databaseService.insertTreinoUsuario({
+    'nome': nome,
+    'data': data,
+    'completo': 0,
+    'duracao_minutos': duracaoMinutos,
+    'usuario_id': _usuarioId,
+  });
 
-    return salvarRecurso<ExercicioModel>(
-      itens: exercicios,
-      searchFn: _databaseService.searchExercicios,
-      insertFn: _databaseService.insertExercicio,
-      toMap: (exercicio) => {
+  for (var exercicio in exercicios) {
+    // Verifica se o exercício já existe no banco
+    final exerciciosExistentes = await _databaseService.searchExercicios(exercicio.nome);
+    int exercicioId;
+
+    if (exerciciosExistentes.isNotEmpty) {
+      exercicioId = exerciciosExistentes.first['id'];
+    } else {
+      // Insere novo exercício se não existir
+      exercicioId = await _databaseService.insertExercicio({
         'nome': exercicio.nome,
         'tipo': exercicio.tipo,
         'musculo': exercicio.musculo,
@@ -204,12 +209,87 @@ class DataService {
         'dificuldade': exercicio.dificuldade,
         'instrucoes': exercicio.instrucoes,
         'fonte': 'API-Ninjas',
-      },
-      insertRelation: _databaseService.insertExercicioTreino,
-      relationId: treinoId,
-      relationKey: 'treino_id',
-      itemKey: 'exercicio_id',
-    );
+      });
+    }
+
+    // Associa exercício ao treino
+    await _databaseService.insertExercicioTreino({
+      'treino_id': treinoId,
+      'exercicio_id': exercicioId, 
+      'series': exercicio.series,
+      'repeticoes': exercicio.repeticoes,
+      'peso': exercicio.peso,
+      'tempo_segundos': exercicio.tempoSegundos,
+    });
+  }
+
+  return treinoId;
+}
+
+  Future<void> salvarExerciciosTreino(int treinoId, List<ExercicioModel> exercicios) async {
+    for (var exercicio in exercicios) {
+      await _databaseService.insertExercicioTreino({
+        'treino_id': treinoId,
+        'exercicio_id': exercicio.id,
+        'series': exercicio.series,
+        'repeticoes': exercicio.repeticoes,
+        'peso': exercicio.peso,
+        'tempo_segundos': exercicio.tempoSegundos,
+      });
+    }
+  }
+
+  Future<void> updateTreinoUsuario(
+      Map<String, dynamic> treinoData) async {
+    if (_usuarioId == null) return;
+    await _databaseService.updateTreinoUsuario(treinoData);
+  }
+
+  Future<void> atualizarTreino({
+    required int id,
+    required String nome,
+    required String data,
+    required List<ExercicioModel> exercicios,
+    int? duracaoMinutos,
+  }) async {
+    await _databaseService.updateTreinoUsuario({
+      'id': id,
+      'nome': nome,
+      'data': data,
+      'duracao_minutos': duracaoMinutos,
+    });
+
+    // Remove todas as associações existentes
+    await _databaseService.deleteExerciciosTreino(id);
+
+    // Adiciona as novas associações
+    for (var exercicio in exercicios) {
+      final exerciciosExistentes = await _databaseService.searchExercicios(exercicio.nome);
+      int exercicioId;
+
+      if (exerciciosExistentes.isNotEmpty) {
+        exercicioId = exerciciosExistentes.first['id'];
+      } else {
+        exercicioId = await _databaseService.insertExercicio({
+          'nome': exercicio.nome,
+          'tipo': exercicio.tipo,
+          'musculo': exercicio.musculo,
+          'equipamento': exercicio.equipamento,
+          'dificuldade': exercicio.dificuldade,
+          'instrucoes': exercicio.instrucoes,
+          'fonte': 'API-Ninjas',
+        });
+      }
+
+      await _databaseService.insertExercicioTreino({
+        'treino_id': id,
+        'exercicio_id': exercicioId,
+        'series': exercicio.series,
+        'repeticoes': exercicio.repeticoes,
+        'peso': exercicio.peso,
+        'tempo_segundos': exercicio.tempoSegundos,
+      });
+    }
   }
 
   Future<List<RefeicaoModel>> getRefeicoesPorData(String data) async {
@@ -257,6 +337,7 @@ class DataService {
       );
 
   ExercicioModel _exercicioFromMap(Map<String, dynamic> et) => ExercicioModel(
+        id: et['id'],
         nome: et['nome'],
         tipo: et['tipo'],
         musculo: et['musculo'],

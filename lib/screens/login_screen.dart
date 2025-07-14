@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../routes/app_routes.dart';
 import '../controllers/data_service.dart';
 
@@ -32,14 +33,8 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // LOGO
-              Image.asset(
-                'lib/assets/images/fitree_logo.png',
-                height: 120,
-              ),
+              Image.asset('lib/assets/images/fitree_logo.png', height: 120),
               const SizedBox(height: 40),
-
-              // TÍTULO
               Text(
                 "Your Fitness Journey Starts Here",
                 textAlign: TextAlign.center,
@@ -48,12 +43,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-
               const SizedBox(height: 32),
-
-              // CAMPO DE E-MAIL
               TextField(
-                controller: _emailController, 
+                controller: _emailController,
                 style: TextStyle(color: theme.colorScheme.primary),
                 decoration: InputDecoration(
                   hintText: "Email",
@@ -66,12 +58,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
-
               const SizedBox(height: 16),
-
-              // CAMPO DE SENHA
               TextField(
-                controller: _passwordController, 
+                controller: _passwordController,
                 obscureText: true,
                 style: TextStyle(color: theme.colorScheme.primary),
                 decoration: InputDecoration(
@@ -85,27 +74,26 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
-
               const SizedBox(height: 24),
-
-              // BOTÃO DE LOGIN
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () async {
-                    FocusScope.of(context).unfocus();                  
+                    FocusScope.of(context).unfocus();
+
                     showDialog(
                       context: context,
                       barrierDismissible: false,
                       builder: (context) => const Center(child: CircularProgressIndicator()),
                     );
 
+                    final dataService = Provider.of<DataService>(context, listen: false);
                     final success = await dataService.login(
-                      _emailController.text.trim(), 
-                      _passwordController.text,     
+                      _emailController.text.trim(),
+                      _passwordController.text,
                     );
 
-                    Navigator.of(context).pop(); 
+                    Navigator.of(context).pop();
 
                     if (!success) {
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -113,6 +101,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       );
                       return;
                     }
+
+                    await dataService.inicializarBanco();
                     Navigator.pushReplacementNamed(context, AppRoutes.home);
                   },
                   style: ElevatedButton.styleFrom(
@@ -123,16 +113,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text(
-                    "Login",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
+                  child: const Text("Login", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 ),
               ),
-
               const SizedBox(height: 16),
-
-              // LINK DE CADASTRO
               TextButton(
                 onPressed: () {
                   FocusScope.of(context).unfocus();

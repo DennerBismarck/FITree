@@ -15,6 +15,7 @@ class TreinoService {
         data: DateTime.now().toString().split(' ')[0],
         exercicios: [
           ExercicioModel(
+            id: null, // ID será gerado pelo banco
             nome: 'Flexão de braço',
             tipo: 'strength',
             musculo: 'chest',
@@ -33,6 +34,7 @@ class TreinoService {
         data: DateTime.now().subtract(const Duration(days: 1)).toString().split(' ')[0],
         exercicios: [
           ExercicioModel(
+            id: null, // ID será gerado pelo banco
             nome: 'Agachamento',
             tipo: 'strength',
             musculo: 'quadriceps',
@@ -127,6 +129,7 @@ class TreinoService {
       final exerciciosTreino = await _databaseService.getExerciciosTreino(treino['id']);
       final exercicios = exerciciosTreino.map((et) => ExercicioModel(
         nome: et['nome'],
+        id: et['id'],
         tipo: et['tipo'],
         musculo: et['musculo'],
         equipamento: et['equipamento'] ?? '',

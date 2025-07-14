@@ -5,25 +5,24 @@ import 'theme/theme.dart';
 import 'theme/theme_notifier.dart';
 import 'screens/login_screen.dart';
 import 'routes/app_routes.dart';
-import 'controllers/data_service.dart'; 
-import 'package:path_provider/path_provider.dart';
+import 'controllers/data_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  try {
-    sqfliteFfiInit();
-    databaseFactory = databaseFactoryFfi;
-    await dataService.inicializarBanco();
-    
-  } catch (e) {
-    print('Erro na inicialização: $e');
-  }
+  // Inicializa FFI do SQFlite
+  sqfliteFfiInit();
+  databaseFactory = databaseFactoryFfi;
 
+  final dataService = DataService();
+  await dataService.inicializarBanco(); // Inicializa banco antes do runApp
 
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => ThemeNotifier(false),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ThemeNotifier(false)),
+        Provider<DataService>.value(value: dataService), // Correto!
+      ],
       child: const MyApp(),
     ),
   );
@@ -47,4 +46,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-

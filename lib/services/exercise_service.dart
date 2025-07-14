@@ -65,6 +65,7 @@ class ExerciseService {
   Future<List<ExercicioModel>> _searchCachedExercises(String query) async {
     final cachedExercises = await _databaseService.searchExercicios(query);
     return cachedExercises.map((exercise) => ExercicioModel(
+      id: exercise['id'],
       nome: exercise['nome'],
       tipo: exercise['tipo'],
       musculo: exercise['musculo'],
@@ -107,6 +108,7 @@ class ExerciseService {
   ExercicioModel? _parseNinjaExercise(Map<String, dynamic> exercise) {
     try {
       return ExercicioModel(
+        id: null, // ID será gerado pelo banco
         nome: exercise['name'] ?? 'Exercício desconhecido',
         tipo: exercise['type'] ?? 'strength',
         musculo: exercise['muscle'] ?? 'unknown',

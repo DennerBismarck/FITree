@@ -67,6 +67,7 @@ class _MealScreenState extends State<MealScreen> {
         
         // Abre a tela de detalhes para edição
         final novaRefeicao = RefeicaoModel(
+          id: refeicaoId,
           refeicao: 'Nova Refeição',
           completo: false,
           data: novaData,

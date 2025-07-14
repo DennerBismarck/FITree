@@ -2,185 +2,179 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/treino_model.dart';
 import '../controllers/data_service.dart';
+import 'edit_exercicio_screen.dart';
 
 class WorkoutDetailsScreen extends StatefulWidget {
   final TreinoModel treino;
 
-  const WorkoutDetailsScreen({required this.treino, super.key});
+  const WorkoutDetailsScreen({Key? key, required this.treino}) : super(key: key);
 
   @override
   State<WorkoutDetailsScreen> createState() => _WorkoutDetailsScreenState();
 }
 
 class _WorkoutDetailsScreenState extends State<WorkoutDetailsScreen> {
-  bool _isSaving = false;
+  late TreinoModel _treinoEditado;
+  final _tituloController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
 
-  Future<void> _salvarTreino() async {
-    setState(() => _isSaving = true);
-    try {
-      final dataService = Provider.of<DataService>(context, listen: false);
-      await dataService.salvarTreino(
-        nome: widget.treino.titulo,
-        data: widget.treino.data,
-        exercicios: widget.treino.exercicios,
-        duracaoMinutos: widget.treino.duracaoMinutos,
-      );
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Treino salvo com sucesso!')),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao salvar treino: $e')),
-      );
-    } finally {
-      setState(() => _isSaving = false);
-    }
-  }
-
-  void _adicionarExercicio() {
-    setState(() {
-      widget.treino.exercicios.add(
-        ExercicioModel(
-          nome: "Novo Exercício",
-          tipo: "Força",
-          musculo: "Geral",
-          equipamento: "Livre",
-          dificuldade: "Fácil",
-          instrucoes: "Adicione instruções aqui.",
-          series: 3,
-          repeticoes: 10,
-        ),
-      );
-    });
-    _salvarTreino();
+  @override
+  void initState() {
+    super.initState();
+    _treinoEditado = TreinoModel.fromMap(widget.treino.toMap());
+    _tituloController.text = _treinoEditado.titulo;
   }
 
   void _removerExercicio(int index) {
     setState(() {
-      widget.treino.exercicios.removeAt(index);
+      _treinoEditado.exercicios.removeAt(index);
     });
-    _salvarTreino();
   }
 
   Future<void> _editarExercicio(int index) async {
-    final exercicio = widget.treino.exercicios[index];
-    
-    final controllers = {
-      'nome': TextEditingController(text: exercicio.nome),
-      'tipo': TextEditingController(text: exercicio.tipo),
-      'musculo': TextEditingController(text: exercicio.musculo),
-      'equipamento': TextEditingController(text: exercicio.equipamento),
-      'dificuldade': TextEditingController(text: exercicio.dificuldade),
-      'instrucoes': TextEditingController(text: exercicio.instrucoes),
-      'series': TextEditingController(text: exercicio.series?.toString()),
-      'repeticoes': TextEditingController(text: exercicio.repeticoes?.toString()),
-    };
-
-    await showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text("Editar Exercício"),
-        content: SingleChildScrollView(
-          child: Column(
-            children: [
-              for (var entry in controllers.entries)
-                Column(
-                  children: [
-                    TextField(
-                      controller: entry.value,
-                      decoration: InputDecoration(labelText: entry.key),
-                    ),
-                    const SizedBox(height: 10),
-                  ],
-                ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: Navigator.of(context).pop,
-            child: const Text("Cancelar"),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              setState(() {
-                widget.treino.exercicios[index] = ExercicioModel(
-                  nome: controllers['nome']!.text,
-                  tipo: controllers['tipo']!.text,
-                  musculo: controllers['musculo']!.text,
-                  equipamento: controllers['equipamento']!.text,
-                  dificuldade: controllers['dificuldade']!.text,
-                  instrucoes: controllers['instrucoes']!.text,
-                  series: int.tryParse(controllers['series']!.text),
-                  repeticoes: int.tryParse(controllers['repeticoes']!.text),
-                );
-              });
-              Navigator.of(context).pop();
-              _salvarTreino();
-            },
-            child: const Text("Salvar"),
-          ),
-        ],
+    final resultado = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => EditExercicioScreen(exercicio: _treinoEditado.exercicios[index]),
       ),
     );
+
+    if (resultado != null && resultado is ExercicioModel) {
+      setState(() {
+        _treinoEditado.exercicios[index] = resultado;
+      });
+    }
   }
+
+  Future<void> _adicionarExercicio() async {
+    final novo = ExercicioModel(
+      id: DateTime.now().millisecondsSinceEpoch,
+      nome: '',
+      tipo: '',
+      musculo: '',
+      equipamento: '',
+      dificuldade: '',
+      instrucoes: '',
+      series: 3,
+      repeticoes: 10,
+      peso: 0.0,
+      tempoSegundos: 0,
+    );
+
+    final resultado = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => EditExercicioScreen(exercicio: novo)),
+    );
+
+    if (resultado != null && resultado is ExercicioModel) {
+      setState(() {
+        _treinoEditado.exercicios.add(resultado);
+      });
+    }
+  }
+
+  Future<void> _salvarTreino() async {
+  if (_formKey.currentState!.validate()) {
+    _treinoEditado.titulo = _tituloController.text;
+
+    if (_treinoEditado.exercicios.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Adicione pelo menos um exercício.')),
+      );
+      return;
+    }
+
+    final dataService = Provider.of<DataService>(context, listen: false);
+    try {
+      if (_treinoEditado.id == null) {
+        final newId = await dataService.salvarTreino(
+          nome: _treinoEditado.titulo,
+          data: _treinoEditado.data,
+          exercicios: _treinoEditado.exercicios,
+        );
+        _treinoEditado.id = newId;
+      } else {
+        await dataService.atualizarTreino(
+          id: _treinoEditado.id!,
+          nome: _treinoEditado.titulo,
+          data: _treinoEditado.data,
+          exercicios: _treinoEditado.exercicios,
+        );
+      }
+
+      Navigator.pop(context, true); // Retorna true indicando sucesso
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao salvar treino: $e')),
+      );
+    }
+  }
+}
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.treino.titulo),
+        title: const Text('Detalhes do Treino'),
         actions: [
-          if (_isSaving)
-            const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: CircularProgressIndicator(),
-            )
-          else
-            IconButton(
-              icon: const Icon(Icons.save),
-              onPressed: _salvarTreino,
-            ),
+          IconButton(
+            icon: const Icon(Icons.save),
+            onPressed: _salvarTreino,
+          ),
         ],
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              itemCount: widget.treino.exercicios.length,
-              itemBuilder: (context, index) {
-                final exercicio = widget.treino.exercicios[index];
-                return Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: ListTile(
-                    title: Text(exercicio.nome),
-                    subtitle: Text("${exercicio.series}x${exercicio.repeticoes} - ${exercicio.musculo}"),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete),
-                      onPressed: () => _removerExercicio(index),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            children: [
+              TextFormField(
+                controller: _tituloController,
+                decoration: const InputDecoration(labelText: 'Título do Treino'),
+                validator: (value) =>
+                    value == null || value.trim().isEmpty ? 'Título obrigatório' : null,
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Exercícios',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+              const SizedBox(height: 10),
+              ..._treinoEditado.exercicios.asMap().entries.map(
+                    (entry) => Card(
+                      child: ListTile(
+                        title: Text(entry.value.nome.isEmpty ? 'Exercício sem nome' : entry.value.nome),
+                        subtitle: Text('${entry.value.series}x${entry.value.repeticoes}'),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          onPressed: () => _removerExercicio(entry.key),
+                        ),
+                        onTap: () => _editarExercicio(entry.key),
+                      ),
                     ),
-                    onTap: () => _editarExercicio(index),
                   ),
-                );
-              },
-            ),
+              const SizedBox(height: 20),
+              ElevatedButton.icon(
+                onPressed: _adicionarExercicio,
+                icon: const Icon(Icons.add),
+                label: const Text('Adicionar Exercício'),
+              ),
+              const SizedBox(height: 40),
+              ElevatedButton(
+                onPressed: _salvarTreino,
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                child: const Text(
+                  'Salvar Treino',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
           ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: ElevatedButton(
-              onPressed: () {
-                setState(() => widget.treino.completo = true);
-                _salvarTreino();
-                Navigator.pop(context);
-              },
-              child: const Text("Marcar como concluído"),
-            ),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _adicionarExercicio,
-        child: const Icon(Icons.add),
+        ),
       ),
     );
   }
