@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/treino_model.dart';
+import '../controllers/data_service.dart';
 
 class WorkoutDetailsScreen extends StatefulWidget {
   final TreinoModel treino;
@@ -11,6 +13,30 @@ class WorkoutDetailsScreen extends StatefulWidget {
 }
 
 class _WorkoutDetailsScreenState extends State<WorkoutDetailsScreen> {
+  bool _isSaving = false;
+
+  Future<void> _salvarTreino() async {
+    setState(() => _isSaving = true);
+    try {
+      final dataService = Provider.of<DataService>(context, listen: false);
+      await dataService.salvarTreino(
+        nome: widget.treino.titulo,
+        data: widget.treino.data,
+        exercicios: widget.treino.exercicios,
+        duracaoMinutos: widget.treino.duracaoMinutos,
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Treino salvo com sucesso!')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao salvar treino: $e')),
+      );
+    } finally {
+      setState(() => _isSaving = false);
+    }
+  }
+
   void _adicionarExercicio() {
     setState(() {
       widget.treino.exercicios.add(
@@ -23,103 +49,74 @@ class _WorkoutDetailsScreenState extends State<WorkoutDetailsScreen> {
           instrucoes: "Adicione instruções aqui.",
           series: 3,
           repeticoes: 10,
-          peso: 0.0, // Adicionado valor padrão
-          tempoSegundos: 60,
         ),
       );
     });
+    _salvarTreino();
   }
 
   void _removerExercicio(int index) {
     setState(() {
       widget.treino.exercicios.removeAt(index);
     });
+    _salvarTreino();
   }
 
   Future<void> _editarExercicio(int index) async {
     final exercicio = widget.treino.exercicios[index];
-
-    final TextEditingController nomeController = TextEditingController(text: exercicio.nome);
-    final TextEditingController tipoController = TextEditingController(text: exercicio.tipo);
-    final TextEditingController musculoController = TextEditingController(text: exercicio.musculo);
-    final TextEditingController equipamentoController = TextEditingController(text: exercicio.equipamento);
-    final TextEditingController dificuldadeController = TextEditingController(text: exercicio.dificuldade);
-    final TextEditingController instrucoesController = TextEditingController(text: exercicio.instrucoes);
-    final TextEditingController seriesController = TextEditingController(text: exercicio.series?.toString() ?? '');
-    final TextEditingController repeticoesController = TextEditingController(text: exercicio.repeticoes?.toString() ?? '');
-    final TextEditingController pesoController = TextEditingController(text: exercicio.peso?.toString() ?? '');
-    final TextEditingController tempoSegundosController = TextEditingController(text: exercicio.tempoSegundos?.toString() ?? '');
+    
+    final controllers = {
+      'nome': TextEditingController(text: exercicio.nome),
+      'tipo': TextEditingController(text: exercicio.tipo),
+      'musculo': TextEditingController(text: exercicio.musculo),
+      'equipamento': TextEditingController(text: exercicio.equipamento),
+      'dificuldade': TextEditingController(text: exercicio.dificuldade),
+      'instrucoes': TextEditingController(text: exercicio.instrucoes),
+      'series': TextEditingController(text: exercicio.series?.toString()),
+      'repeticoes': TextEditingController(text: exercicio.repeticoes?.toString()),
+    };
 
     await showDialog(
       context: context,
       builder: (_) => AlertDialog(
         title: const Text("Editar Exercício"),
-        content: SingleChildScrollView( 
+        content: SingleChildScrollView(
           child: Column(
-            mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(controller: nomeController, decoration: const InputDecoration(labelText: "Nome")),
-              const SizedBox(height: 16),
-              TextField(controller: tipoController, decoration: const InputDecoration(labelText: "Tipo")),
-              const SizedBox(height: 16),
-              TextField(controller: musculoController, decoration: const InputDecoration(labelText: "Músculo")),
-              const SizedBox(height: 16),
-              TextField(controller: equipamentoController, decoration: const InputDecoration(labelText: "Equipamento")),
-              const SizedBox(height: 16),
-              TextField(controller: dificuldadeController, decoration: const InputDecoration(labelText: "Dificuldade")),
-              const SizedBox(height: 16),
-              TextField(controller: instrucoesController, decoration: const InputDecoration(labelText: "Instruções"), maxLines: 3),
-              const SizedBox(height: 16),
-              TextField(
-                controller: seriesController,
-                decoration: const InputDecoration(labelText: "Séries"),
-                keyboardType: TextInputType.number, 
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: repeticoesController,
-                decoration: const InputDecoration(labelText: "Repetições"),
-                keyboardType: TextInputType.number, 
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: pesoController,
-                decoration: const InputDecoration(labelText: "Peso (kg)"),
-                keyboardType: TextInputType.numberWithOptions(decimal: true), 
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: tempoSegundosController,
-                decoration: const InputDecoration(labelText: "Descanso (s)"),
-                keyboardType: TextInputType.number, 
-              ),
+              for (var entry in controllers.entries)
+                Column(
+                  children: [
+                    TextField(
+                      controller: entry.value,
+                      decoration: InputDecoration(labelText: entry.key),
+                    ),
+                    const SizedBox(height: 10),
+                  ],
+                ),
             ],
           ),
         ),
         actions: [
           TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
+            onPressed: Navigator.of(context).pop,
             child: const Text("Cancelar"),
           ),
           ElevatedButton(
             onPressed: () {
               setState(() {
                 widget.treino.exercicios[index] = ExercicioModel(
-                  nome: nomeController.text.trim(),
-                  tipo: tipoController.text.trim(),
-                  musculo: musculoController.text.trim(),
-                  equipamento: equipamentoController.text.trim(),
-                  dificuldade: dificuldadeController.text.trim(),
-                  instrucoes: instrucoesController.text.trim(),
-                  series: int.tryParse(seriesController.text),
-                  repeticoes: int.tryParse(repeticoesController.text),
-                  peso: double.tryParse(pesoController.text), // Usar double.tryParse
-                  tempoSegundos: int.tryParse(tempoSegundosController.text),
+                  nome: controllers['nome']!.text,
+                  tipo: controllers['tipo']!.text,
+                  musculo: controllers['musculo']!.text,
+                  equipamento: controllers['equipamento']!.text,
+                  dificuldade: controllers['dificuldade']!.text,
+                  instrucoes: controllers['instrucoes']!.text,
+                  series: int.tryParse(controllers['series']!.text),
+                  repeticoes: int.tryParse(controllers['repeticoes']!.text),
                 );
               });
-              Navigator.pop(context);
+              Navigator.of(context).pop();
+              _salvarTreino();
             },
             child: const Text("Salvar"),
           ),
@@ -130,44 +127,39 @@ class _WorkoutDetailsScreenState extends State<WorkoutDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final exercicios = widget.treino.exercicios;
-
     return Scaffold(
-      appBar: AppBar(title: Text(widget.treino.titulo)),
+      appBar: AppBar(
+        title: Text(widget.treino.titulo),
+        actions: [
+          if (_isSaving)
+            const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: CircularProgressIndicator(),
+            )
+          else
+            IconButton(
+              icon: const Icon(Icons.save),
+              onPressed: _salvarTreino,
+            ),
+        ],
+      ),
       body: Column(
         children: [
           Expanded(
             child: ListView.builder(
-              itemCount: exercicios.length,
+              itemCount: widget.treino.exercicios.length,
               itemBuilder: (context, index) {
-                final exercicio = exercicios[index];
+                final exercicio = widget.treino.exercicios[index];
                 return Card(
                   margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: ListTile(
-                    title: Text(exercicio.nome, style: Theme.of(context).textTheme.titleMedium),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text("Tipo: ${exercicio.tipo ?? '-'} | Músculo: ${exercicio.musculo ?? '-'}"),
-                        Text("Séries: ${exercicio.series ?? '-'} | Repetições: ${exercicio.repeticoes ?? '-'}"),
-                        Text("Peso: ${exercicio.peso != null ? '${exercicio.peso}kg' : '-'} | Descanso: ${exercicio.tempoSegundos ?? '-'}s"),
-                        Text("Equipamento: ${exercicio.equipamento ?? '-'} | Dificuldade: ${exercicio.dificuldade ?? '-'}"),
-                        Text("Instruções: ${exercicio.instrucoes ?? '-'}"),
-                      ],
+                    title: Text(exercicio.nome),
+                    subtitle: Text("${exercicio.series}x${exercicio.repeticoes} - ${exercicio.musculo}"),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.delete),
+                      onPressed: () => _removerExercicio(index),
                     ),
-                    trailing: PopupMenuButton<String>(
-                      onSelected: (value) {
-                        if (value == 'editar') {
-                          _editarExercicio(index);
-                        } else if (value == 'remover') {
-                          _removerExercicio(index);
-                        }
-                      },
-                      itemBuilder: (BuildContext context) => [
-                        const PopupMenuItem(value: 'editar', child: Text('Editar')),
-                        const PopupMenuItem(value: 'remover', child: Text('Remover')),
-                      ],
-                    ),
+                    onTap: () => _editarExercicio(index),
                   ),
                 );
               },
@@ -175,30 +167,20 @@ class _WorkoutDetailsScreenState extends State<WorkoutDetailsScreen> {
           ),
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: ElevatedButton.icon(
+            child: ElevatedButton(
               onPressed: () {
-                setState(() {
-                  widget.treino.completo = true;
-                });
+                setState(() => widget.treino.completo = true);
+                _salvarTreino();
                 Navigator.pop(context);
               },
-              icon: const Icon(Icons.check),
-              label: const Text("Marcar como concluído"),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                minimumSize: const Size(double.infinity, 50),
-              ),
+              child: const Text("Marcar como concluído"),
             ),
-          )
+          ),
         ],
       ),
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 80.0),
-        child: FloatingActionButton(
-          onPressed: _adicionarExercicio,
-          child: const Icon(Icons.add),
-          backgroundColor: Colors.green,
-        ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _adicionarExercicio,
+        child: const Icon(Icons.add),
       ),
     );
   }

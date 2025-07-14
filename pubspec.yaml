@@ -41,7 +41,9 @@ dependencies:
   flutter_hooks: 
   http:
   sqflite: 
+  sqflite_common_ffi: ^2.3.0
   path_provider: ^2.1.5 
+  path_provider_platform_interface: ^2.1.0
   path: 
 
 dev_dependencies:

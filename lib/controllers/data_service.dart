@@ -19,10 +19,11 @@ class DataService {
   // Funções de login
   Future<bool> login(String email, String senha) async {
     if (email.isEmpty || senha.isEmpty) {
-      return false; 
+      return false;
     }
 
-    final usuario = await _databaseService.getUsuarioByEmailAndPassword(email, senha);
+    final usuario =
+        await _databaseService.getUsuarioByEmailAndPassword(email, senha);
     if (usuario != null) {
       _usuarioId = usuario['id'];
       return true;
@@ -35,7 +36,9 @@ class DataService {
       throw Exception('Name, email and password cannot be empty.');
     }
 
-    final bool emailValid = RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+").hasMatch(email);
+    final bool emailValid = RegExp(
+            r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
+        .hasMatch(email);
     if (!emailValid) {
       throw Exception('Invalid email format.');
     }
@@ -62,7 +65,8 @@ class DataService {
   Future<List<AlimentoModel>> buscarAlimentos(String query) =>
       _nutritionService.searchFoods(query);
 
-  Future<Map<String, double>> calcularNutricaoRefeicao(List<AlimentoModel> alimentos) async =>
+  Future<Map<String, double>> calcularNutricaoRefeicao(
+          List<AlimentoModel> alimentos) async =>
       await _nutritionService.calculateMealNutrition(alimentos);
 
   Future<List<ExercicioModel>> buscarExercicios({
@@ -81,13 +85,21 @@ class DataService {
   Future<List<ExercicioModel>> buscarExerciciosPorMusculo(String musculo) =>
       _exerciseService.getExercisesByMuscle(musculo);
 
-  List<String> getGruposMusculares() => _exerciseService.getAvailableMuscleGroups();
+  List<String> getGruposMusculares() =>
+      _exerciseService.getAvailableMuscleGroups();
 
   String traduzirGrupoMuscular(String musculo) =>
       _exerciseService.translateMuscleGroup(musculo);
 
   Future<void> inicializarBanco() async {
-    await _databaseService.database;
+    try {
+      await _databaseService.database;
+      print('Banco inicializado com sucesso!');
+    } catch (e) {
+      print('Erro ao inicializar banco: $e');
+      // Adicione um fallback ou tratamento adequado
+      rethrow; // Ou continue sem banco de dados se for possível
+    }
   }
 
   Future<int> salvarRecurso<T>({
@@ -202,9 +214,11 @@ class DataService {
 
   Future<List<RefeicaoModel>> getRefeicoesPorData(String data) async {
     if (_usuarioId == null) return [];
-    final refeicoes = await _databaseService.getRefeicoesByDataUsuario(data, _usuarioId!);
+    final refeicoes =
+        await _databaseService.getRefeicoesByDataUsuario(data, _usuarioId!);
     return Future.wait(refeicoes.map((refeicao) async {
-      final alimentosRefeicao = await _databaseService.getAlimentosRefeicao(refeicao['id']);
+      final alimentosRefeicao =
+          await _databaseService.getAlimentosRefeicao(refeicao['id']);
       final alimentos = alimentosRefeicao.map(_alimentoFromMap).toList();
       return RefeicaoModel(
         refeicao: refeicao['refeicao'],
@@ -218,9 +232,11 @@ class DataService {
 
   Future<List<TreinoModel>> getTreinosPorData(String data) async {
     if (_usuarioId == null) return [];
-    final treinos = await _databaseService.getTreinosByDataUsuario(data, _usuarioId!);
+    final treinos =
+        await _databaseService.getTreinosByDataUsuario(data, _usuarioId!);
     return Future.wait(treinos.map((treino) async {
-      final exerciciosTreino = await _databaseService.getExerciciosTreino(treino['id']);
+      final exerciciosTreino =
+          await _databaseService.getExerciciosTreino(treino['id']);
       final exercicios = exerciciosTreino.map(_exercicioFromMap).toList();
       return TreinoModel(
         titulo: treino['nome'],
@@ -252,6 +268,7 @@ class DataService {
         peso: et['peso'],
         tempoSegundos: et['tempo_segundos'],
       );
+
 
   Future<void> limparCacheAntigo() async {
     await _nutritionService.clearOldCache();

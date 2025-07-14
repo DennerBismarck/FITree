@@ -126,7 +126,27 @@ class DatabaseService {
         FOREIGN KEY (exercicio_id) REFERENCES exercicios (id)
       )
     ''');
-  }
+
+    await db.execute('''
+      CREATE TABLE water_logs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      amount_ml REAL NOT NULL,
+      timestamp TEXT NOT NULL,
+      usuario_id INTEGER NOT NULL,
+      FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+    );
+    ''');
+
+    await db.execute('''
+      CREATE TABLE water_reminders (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      time TEXT NOT NULL, -- formato "HH:MM"
+      is_active INTEGER NOT NULL, -- 0 ou 1
+      usuario_id INTEGER NOT NULL,
+      FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+    );
+    ''');
+
 
   // Métodos para usuários
   Future<int> insertUsuario(Map<String, dynamic> usuario) async {
@@ -386,4 +406,5 @@ class DatabaseService {
     final db = await database;
     await db.close();
   }
+}
 }

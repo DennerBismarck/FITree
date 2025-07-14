@@ -6,19 +6,20 @@ import 'theme/theme_notifier.dart';
 import 'screens/login_screen.dart';
 import 'routes/app_routes.dart';
 import 'controllers/data_service.dart'; 
+import 'package:path_provider/path_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  sqfliteFfiInit();
-  databaseFactory = databaseFactoryFfi;
-
   try {
+    sqfliteFfiInit();
+    databaseFactory = databaseFactoryFfi;
     await dataService.inicializarBanco();
-    print('Banco inicializado com sucesso!');
+    
   } catch (e) {
-    print('Erro ao inicializar banco: $e');
+    print('Erro na inicialização: $e');
   }
+
 
   runApp(
     ChangeNotifierProvider(
